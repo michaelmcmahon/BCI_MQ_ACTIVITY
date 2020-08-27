@@ -6,7 +6,6 @@ IDE
 
 The main files to look at are
 - AndroidManifest.xml (Configs)
-- 
 - MainActivity (Starting point and control of the app)
 - BciService (This is where the real work is to get the EEG signals and send them to the Cloud Message Broker)
 - OpenBci (Worker class that convert incoming EEG and accelerometer data into standard 32-bit signed integers)
