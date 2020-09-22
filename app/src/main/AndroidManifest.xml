@@ -37,10 +37,6 @@
         <service
             android:name=".ActivityRecognizedService"
             android:foregroundServiceType="location"/>
-
-        <service
-            android:name=".ActivityRecognizedService2"
-            android:foregroundServiceType="location"/>
     </application>
 
 </manifest>
