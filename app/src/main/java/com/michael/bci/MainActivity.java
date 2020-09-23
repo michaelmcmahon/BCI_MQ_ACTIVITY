@@ -24,6 +24,9 @@ import com.google.android.gms.location.ActivityRecognition;
 import java.util.HashMap;
 import java.util.Map;
 
+/* MainActivity tells Android how the app should interact with the user by initializing the activity,
+creating a window for the UI, and invokes callback methods corresponding to specific stages of its
+lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart() and onDestroy() */
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     final static private String TAG = "BCI_SERVICE 1";
@@ -104,6 +107,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         mApiClient.connect();
     }
 
+    //Instantiate the Handler Thread inside the onStart Method and start thread
+    @Override
+    protected void onStart() {
+        Log.d(TAG, "onStart: called.");
+        super.onStart();
+    }
+
+    //stop the Handler Thread inside the onStop Method (when app closes)
+    @Override
+    protected void onStop() {
+        Log.d(TAG, "onStop: called.");
+        super.onStop();
+    }
+
+    //ensure all the activity’s resources are released when the activity is destroyed.
+    @Override
+    protected void onDestroy() {
+        Log.d(TAG, "onDestroy: called.");
+        super.onDestroy();
+    }
+
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -146,26 +170,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         stopService(intent);
     }
 
-
-    //WHAT TO DO HERE AS I WANT FOREGROUND SERVICE TO CONTINUE?
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    //Instantiate the Handler Thread inside the onStart Method and start thread
-    @Override
-    protected void onStart() {
-        Log.d(TAG, "onStart: called.");
-        super.onStart();
-    }
-
-    //stop the Handler Thread inside the onStop Method (when app closes)
-    @Override
-    protected void onStop() {
-        Log.d(TAG, "onStop: called.");
-        super.onStop();
-    }
 
     //Activity Recognition onConnected
     @Override
