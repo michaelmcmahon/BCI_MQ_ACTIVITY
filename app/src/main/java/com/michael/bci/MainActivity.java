@@ -23,6 +23,7 @@ import com.google.android.gms.location.ActivityRecognition;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /* MainActivity tells Android how the app should interact with the user by initializing the activity,
 creating a window for the UI, and invokes callback methods corresponding to specific stages of its
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         testSignalCheckBox.setChecked(false);
         testSignalCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            String cmd = "";
+            String cmd;
             if (isChecked) {
                 cmd = "-";
             } else {
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         // Launch the BCI service if USB dongle is attached via OTG
-        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(intent.getAction())) {
+        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(Objects.requireNonNull(intent.getAction()))) {
             launchOpenBciService();
         }
         // Stop the BCI service if USB dongle OTG device is removed
