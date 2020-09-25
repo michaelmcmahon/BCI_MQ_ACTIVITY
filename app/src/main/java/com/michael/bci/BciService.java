@@ -329,7 +329,7 @@ public class BciService extends Service {
 //                        Intent sendIntent = new Intent(DATA_SENT_INTERNAL_INTENT);
 //                        sendIntent.putExtra(DATA_EXTRA, dataToSend);
 //                        sendBroadcast(sendIntent);
-                    } else if (msg.what == 11) {
+                    } else if (msg.what != 10) {
                         Looper.myLooper().quit();
                     }
                 }
