@@ -44,7 +44,7 @@ import java.util.Objects;
  * REFERENCES
  * OpenBCI_Processing by Joel Murphy and Conor Russomanno
  * https://github.com/openbci-archive/-DEPRECATED-OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
- * Braindroid by Florian Friemel - Ref below
+ * Braindroid by Florian Friemel
  * https://github.com/florian-f/braindroid/blob/master/src/main/java/org/florian/eeg/braindroid/OpenBci.java
  */
 
