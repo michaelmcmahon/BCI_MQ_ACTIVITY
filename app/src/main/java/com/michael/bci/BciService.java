@@ -303,9 +303,9 @@ public class BciService extends Service {
 
     }
 
-    //
+    /* Start the sender thread to send messages to OpenBCI */
     private void startSenderThread() {
-        mSenderThread = new SenderThread("arduino_sender");
+        mSenderThread = new SenderThread("OpenBCI_sender");
         mSenderThread.start();
     }
 
@@ -318,7 +318,7 @@ public class BciService extends Service {
             Looper.prepare();
             mHandler = new Handler() {
                 public void handleMessage(Message msg) {
-                    Log.i(TAG, "USB handleMessage() 10 or 11?" + msg.what);
+                    Log.i(TAG, "USB handleMessage() 10 or not?" + msg.what);
                     if (msg.what == 10) {
 //                        final byte[] dataToSend = (byte[]) msg.obj;
                         final String writeData = (String) msg.obj;
