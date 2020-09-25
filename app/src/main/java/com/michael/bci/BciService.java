@@ -35,8 +35,17 @@ import java.util.Calendar;
 import java.util.Objects;
 
 /*
- * Created by florian on 24.12.14.
- * Modified by Michael McMahon 28.12.2019
+ * Michael McMahon
+ * This class configures and manages the connection to the OpenBCI Cytron Board.
+ * The connection is implemented via a Serial connection using FTDI driver
+ * running at 115200 baud using typical 8-N-1.The OpenBCI is configured using
+ * single letter text commands sent from the App to the Board.
+ * The EEG data streams back from the Board to the App continuously (once started).
+ * REFERENCES
+ * OpenBCI_Processing by Joel Murphy and Conor Russomanno
+ * https://github.com/openbci-archive/-DEPRECATED-OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
+ * Braindroid by Florian Friemel - Ref below
+ * https://github.com/florian-f/braindroid/blob/master/src/main/java/org/florian/eeg/braindroid/OpenBci.java
  */
 
 public class BciService extends Service {
@@ -368,7 +377,7 @@ public class BciService extends Service {
                                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                                 ConnectionFactory factory;
                                 factory = new ConnectionFactory();
-                                factory.setHost("34.243.250.160"); //IP of the RabbitMQ Message Broker
+                                factory.setHost("34.244.234.79"); //IP of the RabbitMQ Message Broker
                                 factory.setUsername("user"); //RabbitMQ Username
                                 factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
                                 factory.setVirtualHost("/"); //RabbitMQ Virtual Host
