@@ -42,7 +42,7 @@ public class ActivityRecognizedService extends IntentService {
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
             ConnectionFactory factory;
             factory = new ConnectionFactory();
-            factory.setHost("3.250.80.148"); //IP of the RabbitMQ Message Broker
+            factory.setHost("34.244.234.79"); //IP of the RabbitMQ Message Broker
             factory.setUsername("user"); //RabbitMQ Username
             factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
             factory.setVirtualHost("/"); //RabbitMQ Virtual Host
@@ -59,49 +59,49 @@ public class ActivityRecognizedService extends IntentService {
                 String dateString = simpleDateFormat.format(calendar.getTime()); //Create a new String using the date-time format
                 obj.put("TS", dateString); // Create a Timestamp
 
-               if ((activity.getType() == DetectedActivity.IN_VEHICLE) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.IN_VEHICLE && activity.getConfidence() >= 0) {
                    obj.put("In Vehicle: ", +activity.getConfidence());
                    Log.e("ActivityRecogition", "In Vehicle: " + activity.getConfidence());
                } else {
                    obj.put("In Vehicle:", 0);
                }
-                if ((activity.getType() == DetectedActivity.ON_BICYCLE) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.ON_BICYCLE && activity.getConfidence() >= 0) {
                     obj.put("On Bicycle: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Bicycle: " + activity.getConfidence());
                 } else {
                     obj.put("On Bicycle:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.ON_FOOT) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.ON_FOOT && activity.getConfidence() >= 0) {
                     obj.put("On Foot: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("On Foot:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.RUNNING) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.RUNNING && activity.getConfidence() >= 0) {
                     obj.put("Running: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("Running:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.STILL) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.STILL && activity.getConfidence() >= 0) {
                     obj.put("Still: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("Still:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.TILTING) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.TILTING && activity.getConfidence() >= 0) {
                     obj.put("Tilting: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("Tilting:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.WALKING) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.WALKING && activity.getConfidence() >= 0) {
                     obj.put("Walking: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("Walking:", 0);
                 }
-                if ((activity.getType() == DetectedActivity.UNKNOWN) & (activity.getConfidence() >= 0)) {
+                if (activity.getType() == DetectedActivity.UNKNOWN && activity.getConfidence() >= 0) {
                     obj.put("Unknown: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Foot: " + activity.getConfidence());
                 } else {
