@@ -1,12 +1,13 @@
 package com.michael.bci;
 
 /*
- * Michael McMahon 28.12.2019FTDI USB configured as serial port running at 115200 baud using typical 8-N-1.
- * see https://github.com/OpenBCI/OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
+ * Michael McMahon 28.12.2019
+ * OpenBci Class is used by BciService Class - Receiver Thread to convert incoming 24-bit and 16-bit
+ * signed integer number format into a more standard 32-bit signed integer.
  * see https://docs.openbci.com/docs/02Cyton/CytonDataFormat#firmware-version-100-2014-to-fall-2016
+ * see https://github.com/OpenBCI/OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
  */
 class OpenBci {
-
 
     private static final float ADS1299_Vref = 4.5f;  //reference voltage for ADC in ADS1299 set by its hardware
     private static final float ADS1299_gain = 24;  //OpenBCI board sets the ADS1299 chip to its maximum gain (24x)
