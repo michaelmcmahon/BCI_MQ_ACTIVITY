@@ -25,9 +25,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/* MainActivity tells Android how the app should interact with the user by initializing the activity,
+/*
+MainActivity tells Android how the app should interact with the user by initializing the activity,
 creating a window for the UI, and invokes callback methods corresponding to specific stages of its
-lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart() and onDestroy() */
+lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart() and onDestroy().
+We need to implement the ConnectionCallbacks and OnConnectionFailedListener interfaces to connect to
+use Google Play Services for Activity Detection.
+*/
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     final static private String TAG = "BCI_SERVICE 1";
@@ -35,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Button toggleStreamingButton;
     private Button recordButton;
 
+    /*
+    Member variable of type GoogleApiClient to keep a reference to the API client.
+     */
     public GoogleApiClient mApiClient;
     private boolean streaming = false;
 
@@ -96,15 +103,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED); //custom action intent targeting mBroadCastReceiver
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED); //custom action intent targeting mBroadCastReceiver
         launchOpenBciService(); //Launch the Bci Service
-
-        //Activity Recognition Setup
+/*
+Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
+we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
+and associating our listeners with the GoogleApiClient instance.
+ */
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
                 .addOnConnectionFailedListener(this) //this is refer to onConnectionFailedListener interface implementation.
                 .build();
 
-        //Activity Recognition Connect
         mApiClient.connect();
     }
 
@@ -172,13 +181,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-    //Activity Recognition onConnected
+/*
+Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
+we create a PendingIntent that goes to the IntentService created in the ActivityRecognizedService class,
+and passes it to the ActivityRecognitionApi. We can set an interval for how often the API should check
+the user's activity e.g. value of 1000, or one second.
+ */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //Before request API request, GoogleApiClient must be in connected mode.
         Intent intent = new Intent(this,ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1,pendingIntent);
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1000,pendingIntent);
     }
 
     //Activity Recognition onConnectionSuspended
