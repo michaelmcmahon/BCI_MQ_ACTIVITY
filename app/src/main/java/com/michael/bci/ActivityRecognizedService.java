@@ -18,6 +18,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+/*
+This class is focused on using the Google Play Services Activity Recognition API to determine if the user
+is running, walking, in a vehicle, biking, or remaining still. When Google Play Services returns the user's
+activity it is sent to the IntentService to perform the application logic in the background.
+ */
 public class ActivityRecognizedService extends IntentService {
 
     public ActivityRecognizedService() {
@@ -27,7 +32,12 @@ public class ActivityRecognizedService extends IntentService {
     public ActivityRecognizedService(String name) {
         super(name);
     }
-
+/*
+In the onHandleIntent() method of ActivityRecognizedService we validate that the received Intent contains
+activity recognition data and, if so, then extract the ActivityRecognitionResult from the Intent to see what
+activities the user might be performing by calling getProbableActivities() on the ActivityRecognitionResult
+object.
+ */
     @Override
     protected void onHandleIntent(Intent intent) {
         if(ActivityRecognitionResult.hasResult(intent)) {
@@ -36,6 +46,11 @@ public class ActivityRecognizedService extends IntentService {
         }
     }
 
+/*
+In the handleDetectedActivities method we connect to the RabbitMQ 'activity' Queue and send timestamped
+data of each activity that has been detected and how confident Google Play Services is that the user is
+performing that activity by calling getConfidence() on a DetectedActivity instance.
+ */
     private void handleDetectedActivities(List<DetectedActivity> probableActivities) {
 
         try {
@@ -55,8 +70,8 @@ public class ActivityRecognizedService extends IntentService {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
             for (DetectedActivity activity : probableActivities) {
                 JSONObject obj = new JSONObject();
-
-                String dateString = simpleDateFormat.format(calendar.getTime()); //Create a new String using the date-time format
+                /* Create a new String using the date-time format */
+                String dateString = simpleDateFormat.format(calendar.getTime());
                 obj.put("TS", dateString); // Create a Timestamp
 
                 if (activity.getType() == DetectedActivity.IN_VEHICLE && activity.getConfidence() >= 0) {
