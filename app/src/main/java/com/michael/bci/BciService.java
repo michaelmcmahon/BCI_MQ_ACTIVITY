@@ -341,28 +341,34 @@ public class BciService extends Service {
                     }
 
                     synchronized (ftDevice) {
-                        int queueStatus = ftDevice.getQueueStatus(); //Get the bytes Available Queue Status ftDevice.
-                        int available = queueStatus; // Set available to bytes Available
-                        if (queueStatus > 0) {
-                            if (available > TRANSFER_SIZE) {
-                                available = TRANSFER_SIZE; //ensure bytes available are not greater than TRANSFER_SIZE
+                        /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
+                        int bytesAvailable = ftDevice.getQueueStatus();
+                        /* Ensure bytes available are not greater than TRANSFER_SIZE */
+                        if (bytesAvailable > 0) {
+                            if (bytesAvailable > TRANSFER_SIZE) {
+                                bytesAvailable = TRANSFER_SIZE;
                             }
-                            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + queueStatus);
-                            Log.d(TAG, "PROCESS_DATA 1b - available: " + available);
+                            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
 
-                            ftDevice.read(readData, available); //A call to read(byte[], int) requesting up to available bytes will return with the data immediately (negative number for error)
-                            byte[] buffer = new byte[available]; //Create empty buffer array
-                            //arraycopy copies a source array from a specific beginning position to the destination array from the mentioned position.
-                            //No. of arguments to be copied are decided by len argument.
-                            //arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
-                            System.arraycopy(readData, 0, buffer, 0, available); //copy from readData array to buffer array
+                            /* A call to read(byte[], int) requesting up to available bytes will return with
+                            the data immediately (negative number for error) */
+                            ftDevice.read(readData, bytesAvailable);
+                            /* Create empty buffer array */
+                            byte[] buffer = new byte[bytesAvailable];
+                            /*
+                            arraycopy copies a source 'readData' array from a specific beginning position to the
+                            destination 'buffer' array from the mentioned position. No. of arguments to be copied
+                            are decided by len argument.
+                            arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
+                             */
+                            System.arraycopy(readData, 0, buffer, 0, bytesAvailable);
+
                             Log.w(TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
                             Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
-
-                            if (available % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
-                                Log.d(TAG, "received data (" + available + " bytes (" + ((float) available / PACKET_SIZE));
+                            if (bytesAvailable % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
+                                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ PACKET_SIZE));
                             } else {
-                                Log.d(TAG, "received data (" + available + " bytes ("+((float)available / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
+                                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
                             }
                             //ENTER LOOP HERE
 
