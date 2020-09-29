@@ -90,7 +90,7 @@ public class BciService extends Service {
    final static String DATA_SENT_INTERNAL_INTENT = "bci.internal.intent.action.DATA_SENT";
 
 
-   private D2xxManager.DriverParameters mDriverParameters;
+   public D2xxManager.DriverParameters mDriverParameters;
 
    @Override
    public IBinder onBind(Intent intent) {
@@ -239,24 +239,6 @@ public class BciService extends Service {
         Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
     }
 
-    private byte[] getLineEncoding(int baudRate) {
-        final byte[] lineEncodingRequest = {(byte) 0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08};
-        //Get the least significant byte of baudRate,
-        //and put it in first byte of the array being sent
-        lineEncodingRequest[0] = (byte) (baudRate & 0xFF);
-
-        //Get the 2nd byte of baudRate,
-        //and put it in second byte of the array being sent
-        lineEncodingRequest[1] = (byte) ((baudRate >> 8) & 0xFF);
-
-        //ibid, for 3rd byte (my guess, because you need at least 3 bytes
-        //to encode your 115200+ settings)
-        lineEncodingRequest[2] = (byte) ((baudRate >> 16) & 0xFF);
-
-        return lineEncodingRequest;
-
-    }
-
     /* SEND COMMAND TO OPENBCI BOARD */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
 //        private SenderThread mSenderThread;
@@ -394,7 +376,7 @@ public class BciService extends Service {
                                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                                 ConnectionFactory factory;
                                 factory = new ConnectionFactory();
-                                factory.setHost("34.244.234.79"); //IP of the RabbitMQ Message Broker
+                                factory.setHost("3.250.28.114"); //IP of the RabbitMQ Message Broker
                                 factory.setUsername("user"); //RabbitMQ Username
                                 factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
                                 factory.setVirtualHost("/"); //RabbitMQ Virtual Host
