@@ -335,7 +335,14 @@ public class BciService extends Service {
     }
 
 
-    /* Method to create thread which will receive and process data from the OpenBCI Cyton Board */
+    /*
+    Getting this warning because org.json.simple.JSONObject uses raw type collections internally
+    - need to change to a library which supports generics to be more type safe.
+    */
+    @SuppressWarnings(value = "unchecked")
+    /*
+    Method to create thread which will receive and process data from the OpenBCI Cyton Board
+    */
     private void startReceiverThread() {
 
         receiverThreadRunning = true;
