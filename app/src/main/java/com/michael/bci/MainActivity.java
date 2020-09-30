@@ -37,7 +37,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     final static private String TAG = "BCI_SERVICE 1";
 
     private Button toggleStreamingButton;
-    private Button recordButton;
 
     /*
     Member variable of type GoogleApiClient to keep a reference to the API client.
@@ -46,6 +45,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private boolean streaming = false;
 
     @Override
+    /*
+    onCreate() is called when the activity is first created to do all static set up: create views,
+    bind data to lists, etc. This method also provides a Bundle containing the activity's previously
+    frozen state, if there was one.
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -75,10 +79,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             sendBroadcast(intent);
         });
 
-        // Toggle Streaming Button to start/stop streaming EEG data
+        /* Toggle Streaming Button to start/stop streaming EEG data */
         toggleStreamingButton.setOnClickListener((View v) -> {
             if (!streaming) {
-                //To begin data streaming, transmit a single ASCII b
+                /* To begin data streaming, transmit a single ASCII b */
                 toggleStreamingButton.setText("stop streaming");
                 streaming = true;
                // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
@@ -87,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Log.e(TAG, "Send Command - b");
                 sendBroadcast(intent);
             } else {
-                //To end data streaming, transmit a single ASCII s
+                /* To end data streaming, transmit a single ASCII s */
                 toggleStreamingButton.setText("start streaming");
                 streaming = false;
                 Intent intent = new Intent(BciService.SEND_COMMAND);
@@ -115,27 +119,6 @@ and associating our listeners with the GoogleApiClient instance.
                 .build();
 
         mApiClient.connect();
-    }
-
-    //Instantiate the Handler Thread inside the onStart Method and start thread
-    @Override
-    protected void onStart() {
-        Log.d(TAG, "onStart: called.");
-        super.onStart();
-    }
-
-    //stop the Handler Thread inside the onStop Method (when app closes)
-    @Override
-    protected void onStop() {
-        Log.d(TAG, "onStop: called.");
-        super.onStop();
-    }
-
-    //ensure all the activity’s resources are released when the activity is destroyed.
-    @Override
-    protected void onDestroy() {
-        Log.d(TAG, "onDestroy: called.");
-        super.onDestroy();
     }
 
     @Override
