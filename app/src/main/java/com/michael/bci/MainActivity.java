@@ -147,10 +147,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             deviceList = usbManager.getDeviceList();
         }
 
-        for (Map.Entry<String, UsbDevice> entry : deviceList.entrySet()) {
-            UsbDevice device = entry.getValue();
-            if (device.getVendorId() == BciService.VENDOR_ID) {
-                usbDevice = device;
+        if (deviceList != null) {
+            for (Map.Entry<String, UsbDevice> entry : deviceList.entrySet()) {
+                UsbDevice device = entry.getValue();
+                if (device.getVendorId() == BciService.VENDOR_ID) {
+                    usbDevice = device;
+                }
             }
         }
 
