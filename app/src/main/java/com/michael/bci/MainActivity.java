@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /*
+Michael McMahon
 MainActivity tells Android how the app should interact with the user by initializing the activity,
 creating a window for the UI, and invokes callback methods corresponding to specific stages of its
 lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart() and onDestroy().
@@ -107,11 +108,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED); //custom action intent targeting mBroadCastReceiver
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED); //custom action intent targeting mBroadCastReceiver
         launchOpenBciService(); //Launch the Bci Service
-/*
-Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
-we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
-and associating our listeners with the GoogleApiClient instance.
- */
+    /*
+    Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
+    we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
+    and associating our listeners with the GoogleApiClient instance.
+     */
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
@@ -122,24 +123,29 @@ and associating our listeners with the GoogleApiClient instance.
     }
 
     @Override
+    /*
+    onNewIntent will launch the BCI service if USB dongle is attached via OTG and
+    stop the BCI service if USB dongle OTG device is removed
+    */
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Launch the BCI service if USB dongle is attached via OTG
         if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(Objects.requireNonNull(intent.getAction()))) {
             launchOpenBciService();
         }
-        // Stop the BCI service if USB dongle OTG device is removed
         if (UsbManager.ACTION_USB_DEVICE_DETACHED.contains(intent.getAction())) {
             stopOpenBciService();
         }
     }
 
-    //Launch the OpenBCI Service
+    /* Launch the OpenBCI Service */
     private void launchOpenBciService() {
         UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         UsbDevice usbDevice = null;
 
-        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+        HashMap<String, UsbDevice> deviceList = null;
+        if (usbManager != null) {
+            deviceList = usbManager.getDeviceList();
+        }
 
         for (Map.Entry<String, UsbDevice> entry : deviceList.entrySet()) {
             UsbDevice device = entry.getValue();
@@ -157,7 +163,7 @@ and associating our listeners with the GoogleApiClient instance.
         }
     }
 
-    //Stop the OpenBCI Service
+    /* Stop the OpenBCI Service */
     private void stopOpenBciService() {
         Intent intent = new Intent(getApplicationContext(), BciService.class);
         stopService(intent);
@@ -178,13 +184,13 @@ the user's activity e.g. value of 1000, or one second.
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1000,pendingIntent);
     }
 
-    //Activity Recognition onConnectionSuspended
+    /* Activity Recognition onConnectionSuspended */
     @Override
     public void onConnectionSuspended(int i) {
 
     }
 
-    //Activity Recognition onConnectionFailed
+    /* Activity Recognition onConnectionFailed */
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
