@@ -252,7 +252,11 @@ public class BciService extends Service {
 
 
 
-    /* SEND COMMAND TO OPENBCI BOARD */
+    /*
+    SEND COMMAND TO OPENBCI BOARD - The BroadcastReceiver mReceiver method receives
+    and handles broadcast intents sent by sendBroadcast(Intent) from the Toggle Streaming Button
+    to start/stop streaming EEG data in the MainActivity Class OnCreate() Method.
+    */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
 //        private SenderThread mSenderThread;
         @Override
@@ -357,7 +361,7 @@ public class BciService extends Service {
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {
-                        // ignore
+                        // Say something?
                     }
 
                     synchronized (lockObj) {
@@ -390,12 +394,11 @@ public class BciService extends Service {
                             } else {
                                 Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
                             }
-                            //ENTER LOOP HERE
-
+                            // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
                             //android ftdi usb loop buffer example
 
 
-                            //Work we want completed
+                            //Work we want completed 
                             try {
                                 /* Store packet data */
                                 byte[] packet = buffer;
@@ -489,7 +492,7 @@ public class BciService extends Service {
                                             if (packet.length < BciService.TRANSFER_SIZE) {
                                                 if (packet.length % PACKET_SIZE != 0) {
                                                     remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
-                                                    Log.w(TAG, "PROCESS_DATA 9: " + remainingBytes);
+                                                    Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
                                                     Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
                                                 }
                                             }
