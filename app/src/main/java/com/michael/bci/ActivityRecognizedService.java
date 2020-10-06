@@ -19,9 +19,12 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 /*
+Michael McMahon
 This class is focused on using the Google Play Services Activity Recognition API to determine if the user
 is running, walking, in a vehicle, biking, or remaining still. When Google Play Services returns the user's
 activity it is sent to the IntentService to perform the application logic in the background.
+REFERENCE
+https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity-recognition--cms-25851
  */
 public class ActivityRecognizedService extends IntentService {
 
@@ -57,7 +60,7 @@ performing that activity by calling getConfidence() on a DetectedActivity instan
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
             ConnectionFactory factory;
             factory = new ConnectionFactory();
-            factory.setHost("34.244.234.79"); //IP of the RabbitMQ Message Broker
+            factory.setHost("34.244.11.71"); //IP of the RabbitMQ Message Broker
             factory.setUsername("user"); //RabbitMQ Username
             factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
             factory.setVirtualHost("/"); //RabbitMQ Virtual Host
