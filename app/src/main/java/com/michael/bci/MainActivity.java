@@ -23,18 +23,34 @@ import com.google.android.gms.location.ActivityRecognition;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
+/*
+Michael McMahon
+MainActivity tells Android how the app should interact with the user by initializing the activity,
+creating a window for the UI, and invokes callback methods corresponding to specific stages of its
+lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRestart() and onDestroy().
+We need to implement the ConnectionCallbacks and OnConnectionFailedListener interfaces to connect to
+use Google Play Services for Activity Detection.
+*/
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     final static private String TAG = "BCI_SERVICE 1";
 
     private Button toggleStreamingButton;
-    private Button recordButton;
 
+    /*
+    Member variable of type GoogleApiClient to keep a reference to the API client.
+     */
     public GoogleApiClient mApiClient;
     private boolean streaming = false;
 
     @Override
+    /*
+    onCreate() is called when the activity is first created to do all static set up: create views,
+    bind data to lists, etc. This method also provides a Bundle containing the activity's previously
+    frozen state, if there was one.
+     */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -45,7 +61,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         testSignalCheckBox.setChecked(false);
         testSignalCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            String cmd = "";
+            String cmd;
             if (isChecked) {
                 cmd = "-";
             } else {
@@ -64,10 +80,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             sendBroadcast(intent);
         });
 
-        // Toggle Streaming Button to start/stop streaming EEG data
+        /* Toggle Streaming Button to start/stop streaming EEG data */
         toggleStreamingButton.setOnClickListener((View v) -> {
             if (!streaming) {
-                //To begin data streaming, transmit a single ASCII b
+                /* To begin data streaming, transmit a single ASCII b */
                 toggleStreamingButton.setText("stop streaming");
                 streaming = true;
                // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
@@ -76,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 Log.e(TAG, "Send Command - b");
                 sendBroadcast(intent);
             } else {
-                //To end data streaming, transmit a single ASCII s
+                /* To end data streaming, transmit a single ASCII s */
                 toggleStreamingButton.setText("start streaming");
                 streaming = false;
                 Intent intent = new Intent(BciService.SEND_COMMAND);
@@ -92,42 +108,51 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED); //custom action intent targeting mBroadCastReceiver
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED); //custom action intent targeting mBroadCastReceiver
         launchOpenBciService(); //Launch the Bci Service
-
-        //Activity Recognition Setup
+    /*
+    Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
+    we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
+    and associating our listeners with the GoogleApiClient instance.
+     */
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
                 .addOnConnectionFailedListener(this) //this is refer to onConnectionFailedListener interface implementation.
                 .build();
 
-        //Activity Recognition Connect
         mApiClient.connect();
     }
 
     @Override
+    /*
+    onNewIntent will launch the BCI service if USB dongle is attached via OTG and
+    stop the BCI service if USB dongle OTG device is removed
+    */
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // Launch the BCI service if USB dongle is attached via OTG
-        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(intent.getAction())) {
+        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(Objects.requireNonNull(intent.getAction()))) {
             launchOpenBciService();
         }
-        // Stop the BCI service if USB dongle OTG device is removed
         if (UsbManager.ACTION_USB_DEVICE_DETACHED.contains(intent.getAction())) {
             stopOpenBciService();
         }
     }
 
-    //Launch the OpenBCI Service
+    /* Launch the OpenBCI Service */
     private void launchOpenBciService() {
         UsbManager usbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
         UsbDevice usbDevice = null;
 
-        HashMap<String, UsbDevice> deviceList = usbManager.getDeviceList();
+        HashMap<String, UsbDevice> deviceList = null;
+        if (usbManager != null) {
+            deviceList = usbManager.getDeviceList();
+        }
 
-        for (Map.Entry<String, UsbDevice> entry : deviceList.entrySet()) {
-            UsbDevice device = entry.getValue();
-            if (device.getVendorId() == BciService.VENDOR_ID) {
-                usbDevice = device;
+        if (deviceList != null) {
+            for (Map.Entry<String, UsbDevice> entry : deviceList.entrySet()) {
+                UsbDevice device = entry.getValue();
+                if (device.getVendorId() == BciService.VENDOR_ID) {
+                    usbDevice = device;
+                }
             }
         }
 
@@ -140,49 +165,34 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    //Stop the OpenBCI Service
+    /* Stop the OpenBCI Service */
     private void stopOpenBciService() {
         Intent intent = new Intent(getApplicationContext(), BciService.class);
         stopService(intent);
     }
 
 
-    //WHAT TO DO HERE AS I WANT FOREGROUND SERVICE TO CONTINUE?
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    //Instantiate the Handler Thread inside the onStart Method and start thread
-    @Override
-    protected void onStart() {
-        Log.d(TAG, "onStart: called.");
-        super.onStart();
-    }
-
-    //stop the Handler Thread inside the onStop Method (when app closes)
-    @Override
-    protected void onStop() {
-        Log.d(TAG, "onStop: called.");
-        super.onStop();
-    }
-
-    //Activity Recognition onConnected
+/*
+Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
+we create a PendingIntent that goes to the IntentService created in the ActivityRecognizedService class,
+and passes it to the ActivityRecognitionApi. We can set an interval for how often the API should check
+the user's activity e.g. value of 1000, or one second.
+ */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //Before request API request, GoogleApiClient must be in connected mode.
         Intent intent = new Intent(this,ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1,pendingIntent);
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1000,pendingIntent);
     }
 
-    //Activity Recognition onConnectionSuspended
+    /* Activity Recognition onConnectionSuspended */
     @Override
     public void onConnectionSuspended(int i) {
 
     }
 
-    //Activity Recognition onConnectionFailed
+    /* Activity Recognition onConnectionFailed */
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 

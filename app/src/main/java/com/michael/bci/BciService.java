@@ -19,6 +19,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
 import com.ftdi.j2xx.D2xxManager; //management class for connected FTDI devices.
@@ -35,8 +36,17 @@ import java.util.Calendar;
 import java.util.Objects;
 
 /*
- * Created by florian on 24.12.14.
- * Modified by Michael McMahon 28.12.2019
+ * Michael McMahon
+ * This class configures and manages the connection to the OpenBCI Cytron Board.
+ * The connection is implemented via a Serial connection using FTDI driver
+ * running at 115200 baud using typical 8-N-1.The OpenBCI is configured using
+ * single letter text commands sent from the App to the Board.
+ * The EEG data streams back from the Board to the App continuously (once started).
+ * REFERENCES
+ * OpenBCI_Processing by Joel Murphy and Conor Russomanno
+ * https://github.com/openbci-archive/-DEPRECATED-OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
+ * Braindroid by Florian Friemel
+ * https://github.com/florian-f/braindroid/blob/master/src/main/java/org/florian/eeg/braindroid/OpenBci.java
  */
 
 public class BciService extends Service {
@@ -49,6 +59,8 @@ public class BciService extends Service {
     private SenderThread mSenderThread;
     private static D2xxManager ftD2xx = null;
     private FT_Device ftDevice = null;
+    /* Ensure startReceiverThread block is synchronized on "private final" field */
+    private final Object lockObj = new Object();
 
     //static final int TRANSFER_SIZE = 1024; // ...
     //static final int TRANSFER_SIZE = 528; // initial transfer size
@@ -58,108 +70,127 @@ public class BciService extends Service {
     public static final long SLEEP = 200;
     public static final int VENDOR_ID = 1027;
     public static final int BAUD_RATE = 115200;
-    public static final byte PACKET_SIZE = (byte) 33; //One byte header 0x41 then 31 bytes of data followed by 0xCX where X is 0-F in hex
-    public static final byte START_BYTE = (byte) 0xA0; //Header Byte 1: 0xA0
-    byte mStopBit = D2xxManager.FT_STOP_BITS_1;
-    byte mDataBit = D2xxManager.FT_DATA_BITS_8;
-    byte mParity = D2xxManager.FT_PARITY_NONE;
-    short mFlowControl = D2xxManager.FT_FLOW_NONE; //FT_FLOW_NONE / FT_FLOW_RTS_CTS / FT_FLOW_DTR_DSR / FT_FLOW_XON_XOFF
-    byte[] overflowBuffer = new byte[TRANSFER_SIZE*2]; //Do I need a larger buffer size
+    /* One byte header 0x41 then 31 bytes of data followed by 0xCX where X is 0-F in hex */
+    public static final byte PACKET_SIZE = (byte) 33;
+    /* Header Byte 1: 0xA0 */
+   public static final byte START_BYTE = (byte) 0xA0;
+   byte mStopBit = D2xxManager.FT_STOP_BITS_1;
+   byte mDataBit = D2xxManager.FT_DATA_BITS_8;
+   byte mParity = D2xxManager.FT_PARITY_NONE;
+   /* FT_FLOW_NONE / FT_FLOW_RTS_CTS / FT_FLOW_DTR_DSR / FT_FLOW_XON_XOFF */
+   short mFlowControl = D2xxManager.FT_FLOW_NONE;
+   byte[] overflowBuffer = new byte[TRANSFER_SIZE*2]; //Do I need a larger buffer size
 
-    private volatile boolean receiverThreadRunning;
-
-
-    //Define the Custom Action Intents for BroadcastReceiver
-    final static String DATA_RECEIVED_INTENT = "bci.intent.action.DATA_RECEIVED";
-    final static String DATA_EXTRA = "bci.intent.extra.DATA";
-    final static String SEND_COMMAND = "bci.intent.action.SEND_COMMAND";
-    final static String COMMAND_EXTRA = "bci.intent.extra.COMMAND_EXTRA";
-    final static String SEND_DATA_INTENT = "bci.intent.action.SEND_DATA";
-    final static String DATA_SENT_INTERNAL_INTENT = "bci.internal.intent.action.DATA_SENT";
+   private volatile boolean receiverThreadRunning;
 
 
-    private D2xxManager.DriverParameters mDriverParameters;
+   /* Define the Custom Action Intents for BroadcastReceiver */
+   final static String DATA_RECEIVED_INTENT = "bci.intent.action.DATA_RECEIVED";
+   final static String DATA_EXTRA = "bci.intent.extra.DATA";
+   final static String SEND_COMMAND = "bci.intent.action.SEND_COMMAND";
+   final static String COMMAND_EXTRA = "bci.intent.extra.COMMAND_EXTRA";
+   final static String SEND_DATA_INTENT = "bci.intent.action.SEND_DATA";
+   final static String DATA_SENT_INTERNAL_INTENT = "bci.internal.intent.action.DATA_SENT";
 
+
+   public D2xxManager.DriverParameters mDriverParameters;
+
+   /*
+   Return the communication channel to the service.  May return null if clients can not bind to the
+   service. A bound service is an implementation of the Service class that allows other applications
+   to bind to it and interact with it. The onBind() callback method returns an IBinder object that
+   defines the programming interface that clients can use to interact with the service.
+   https://developer.android.com/guide/components/bound-services
+    */
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        IntentFilter filter = new IntentFilter();
+   @Override
+   public void onCreate() {
+       super.onCreate();
+       IntentFilter filter = new IntentFilter();
 //      filter.addAction(SEND_DATA_INTENT);
-        filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
-        filter.addAction(SEND_COMMAND);
-        registerReceiver(mReceiver, filter);
-    }
+       filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
+       filter.addAction(SEND_COMMAND);
+       registerReceiver(mReceiver, filter);
+   }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+   @Override
+   public int onStartCommand(Intent intent, int flags, int startId) {
 
-        //Set the Foreground notification's tap action
-        createNotificationChannel();
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+       /* Set the Foreground notification's tap action */
+       createNotificationChannel();
+       Intent notificationIntent = new Intent(this, MainActivity.class);
+       notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+       PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-        //Set the Foreground notification content
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("BCI_1")
-                .setContentText("This ia a test foreground message for BCI Service 1")
+       /* Set the Foreground notification content */
+       Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+               .setContentTitle("BCI_1")
+               .setContentText("This ia a test foreground message for BCI Service 1")
 //                .setSmallIcon(R.drawable.icon)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .build();
+               .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+               .setContentIntent(pendingIntent)
+               .build();
 
-        //Start Foreground Service
-        startForeground(1, notification);
-
-
-        if (mIsRunning) {
-            Log.i(TAG, "Service already running.");
-            return Service.START_REDELIVER_INTENT;
-        }
-        //obtain the UsbDevice that represents the attached device from the intent-filter set in AndroidManifest.xml
-        UsbDevice mUsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
-
-        if (null == ftD2xx) {
-            try {
-                ftD2xx = D2xxManager.getInstance(this);
-                ftD2xx.createDeviceInfoList(this);
-
-            } catch (D2xxManager.D2xxException ex) {
-                Log.e(TAG, "USB: Catch exception");
-                Log.e(TAG, ex.getMessage(), ex);
-            }
-
-        }
-
-        // connect
-        if (null == ftDevice)
-        {
-            ftDevice = ftD2xx.openByUsbDevice(this, mUsbDevice);
-            Log.e(TAG, "USB: Connect to ftDevice");
-        }
+       /* Start Foreground Service */
+       startForeground(1, notification);
 
 
-        if (ftDevice == null || !ftDevice.isOpen()) {
-            Log.e(TAG, "USB: Opening ftDevice Failed");
-            stopSelf();
-            return Service.START_REDELIVER_INTENT;
-        }
+       if (mIsRunning) {
+           Log.i(TAG, "Service already running.");
+           return Service.START_REDELIVER_INTENT;
+       }
+       /* obtain the UsbDevice that represents the attached device from the intent-filter set in AndroidManifest.xml */
+       UsbDevice mUsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
 
-        // reset to UART mode for 232 devices
-        ftDevice.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); // Reset FT Device
-        ftDevice.setBaudRate(BAUD_RATE); //Set BaudRat
+       if (null == ftD2xx) {
+           try {
+               ftD2xx = D2xxManager.getInstance(this);
+               ftD2xx.createDeviceInfoList(this);
 
-        ftDevice.setLatencyTimer((byte) 16); //The default FTDI 16 latency may be too large for EEG apps, making the incoming signal "choppy", May change from 16ms to 1ms
+           } catch (D2xxManager.D2xxException ex) {
+               Log.e(TAG, "USB: Catch exception");
+               Log.e(TAG, ex.getMessage(), ex);
+           }
 
-        //FTDI USB configured as serial port running at 115200 baud using typical 8-N-1.
-        byte dataBit = mDataBit; /*Individual bits representing the data character. Fewer bits reduces the range of data, but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc*/
-        byte stopBit = mStopBit; /*time interval to indicate the end of that character - can be configured to remain idle for 1- or 2-bit durations.*/
-        byte parity = mParity; /*Optional error checking value to indicate if the contents of the data bits sum to an even or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
+       }
+
+       /* connect */
+       if (null == ftDevice)
+       {
+           ftDevice = ftD2xx.openByUsbDevice(this, mUsbDevice);
+           Log.e(TAG, "USB: Connect to ftDevice");
+       }
+
+
+       if (ftDevice == null || !ftDevice.isOpen()) {
+           Log.e(TAG, "USB: Opening ftDevice Failed");
+           stopSelf();
+           return Service.START_REDELIVER_INTENT;
+       }
+
+       /* reset to UART mode for 232 devices */
+       ftDevice.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); /* Reset FT Device */
+       ftDevice.setBaudRate(BAUD_RATE); /* Set BaudRate */
+       /* The default FTDI 16 latency may be too large for EEG apps, making the incoming signal "choppy", May change from 16ms to 1ms */
+       ftDevice.setLatencyTimer((byte) 16);
+
+       /* FTDI USB configured as serial port running at 115200 baud using typical 8-N-1. */
+
+       /* Individual bits representing the data character. Fewer bits reduces the range of data,
+          but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc */
+        byte dataBit = mDataBit;
+       /* time interval to indicate the end of that character - can be configured to remain
+          idle for 1- or 2-bit durations.*/
+        byte stopBit = mStopBit;
+       /*Optional error checking value to indicate if the contents of the data bits sum to an
+         even or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
+        byte parity = mParity;
+        /* Pull all above together and set the Data Characteristics */
         ftDevice.setDataCharacteristics(dataBit, stopBit, parity);
 
         short flowControl = mFlowControl; /*0:none, 1: flow control(CTS,RTS)*/
@@ -172,6 +203,8 @@ public class BciService extends Service {
 
         mIsRunning = true;
         mDriverParameters = new D2xxManager.DriverParameters();
+
+        /* Get some logging output to see what is going on */
         Log.d(TAG, "USB: Buffer Number: " + mDriverParameters.getBufferNumber()); //Return Buffer number for Rx in user space application
         Log.d(TAG, "USB: Rx Buffer size: " + mDriverParameters.getMaxTransferSize()); //Return Rx buffer size of user space application
         Log.d(TAG, "USB: Max Transfer size for Rx: " + mDriverParameters.getMaxBufferSize()); //Return Max Transfer size for Rx in the user space application.
@@ -180,7 +213,6 @@ public class BciService extends Service {
         Log.d(TAG, "USB: open status of the device: " + ftDevice.isOpen()); //Returns the open status of the device
         Log.d(TAG, "USB: buffer is full -> Rx pending until read: " + ftDevice.readBufferFull()); //Returns if the Rx buffer was full with data, if true, Rx would be pending until the data is read by user.
         Log.d(TAG, "USB: LATENCY_TIMER: " + ftDevice.getLatencyTimer()); //Retrieves the current latency timer value from the device
-
         Log.i(TAG, "USB: Receiving data!");
 
         Toast.makeText(getBaseContext(), getString(R.string.receiving), Toast.LENGTH_SHORT).show();
@@ -218,25 +250,13 @@ public class BciService extends Service {
         Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
     }
 
-    private byte[] getLineEncoding(int baudRate) {
-        final byte[] lineEncodingRequest = {(byte) 0x80, 0x25, 0x00, 0x00, 0x00, 0x00, 0x08};
-        //Get the least significant byte of baudRate,
-        //and put it in first byte of the array being sent
-        lineEncodingRequest[0] = (byte) (baudRate & 0xFF);
 
-        //Get the 2nd byte of baudRate,
-        //and put it in second byte of the array being sent
-        lineEncodingRequest[1] = (byte) ((baudRate >> 8) & 0xFF);
 
-        //ibid, for 3rd byte (my guess, because you need at least 3 bytes
-        //to encode your 115200+ settings)
-        lineEncodingRequest[2] = (byte) ((baudRate >> 16) & 0xFF);
-
-        return lineEncodingRequest;
-
-    }
-
-    //SEND COMMAND TO OPENBCI BOARD
+    /*
+    SEND COMMAND TO OPENBCI BOARD - The BroadcastReceiver mReceiver method receives
+    and handles broadcast intents sent by sendBroadcast(Intent) from the Toggle Streaming Button
+    to start/stop streaming EEG data in the MainActivity Class OnCreate() Method.
+    */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
 //        private SenderThread mSenderThread;
         @Override
@@ -252,6 +272,11 @@ public class BciService extends Service {
                         Toast.makeText(context, "No extra in Intent", Toast.LENGTH_LONG).show();
                         return;
                     }
+                     /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
+                        queue and execute them on that Looper's thread.
+                        obtainMessage(), sets the what and obj members of the returned Message.
+                        what = int: Value of 10 assigned to the returned Message.what field.
+                        obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
                     mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
                 }
             }
@@ -277,9 +302,9 @@ public class BciService extends Service {
 
     }
 
-    //
+    /* Start the sender thread to send messages to the OpenBCI Cyton Board */
     private void startSenderThread() {
-        mSenderThread = new SenderThread("arduino_sender");
+        mSenderThread = new SenderThread("OpenBCI_sender");
         mSenderThread.start();
     }
 
@@ -292,7 +317,7 @@ public class BciService extends Service {
             Looper.prepare();
             mHandler = new Handler() {
                 public void handleMessage(Message msg) {
-                    Log.i(TAG, "USB handleMessage() 10 or 11?" + msg.what);
+                    Log.i(TAG, "USB handleMessage() 10 or not?" + msg.what);
                     if (msg.what == 10) {
 //                        final byte[] dataToSend = (byte[]) msg.obj;
                         final String writeData = (String) msg.obj;
@@ -303,7 +328,7 @@ public class BciService extends Service {
 //                        Intent sendIntent = new Intent(DATA_SENT_INTERNAL_INTENT);
 //                        sendIntent.putExtra(DATA_EXTRA, dataToSend);
 //                        sendBroadcast(sendIntent);
-                    } else if (msg.what == 11) {
+                    } else if (msg.what != 10) {
                         Looper.myLooper().quit();
                     }
                 }
@@ -314,7 +339,14 @@ public class BciService extends Service {
     }
 
 
-    //RECEIVE DATA FROM OPENBCI BOARD
+    /*
+    Getting this warning because org.json.simple.JSONObject uses raw type collections internally
+    - need to change to a library which supports generics to be more type safe.
+    */
+    @SuppressWarnings(value = "unchecked")
+    /*
+    Method to create thread which will receive and process data from the OpenBCI Cyton Board
+    */
     private void startReceiverThread() {
 
         receiverThreadRunning = true;
@@ -329,46 +361,52 @@ public class BciService extends Service {
                     try {
                         Thread.sleep(1);
                     } catch (InterruptedException e) {
-                        // ignore
+                        // Say something?
                     }
 
-                    synchronized (ftDevice) {
-                        int queueStatus = ftDevice.getQueueStatus(); //Get the bytes Available Queue Status ftDevice.
-                        int available = queueStatus; // Set available to bytes Available
-                        if (queueStatus > 0) {
-                            if (available > TRANSFER_SIZE) {
-                                available = TRANSFER_SIZE; //ensure bytes available are not greater than TRANSFER_SIZE
+                    synchronized (lockObj) {
+                        /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
+                        int bytesAvailable = ftDevice.getQueueStatus();
+                        /* Ensure bytes available are not greater than TRANSFER_SIZE */
+                        if (bytesAvailable > 0) {
+                            if (bytesAvailable > TRANSFER_SIZE) {
+                                bytesAvailable = TRANSFER_SIZE;
                             }
-                            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + queueStatus);
-                            Log.d(TAG, "PROCESS_DATA 1b - available: " + available);
+                            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
 
-                            ftDevice.read(readData, available); //A call to read(byte[], int) requesting up to available bytes will return with the data immediately (negative number for error)
-                            byte[] buffer = new byte[available]; //Create empty buffer array
-                            //arraycopy copies a source array from a specific beginning position to the destination array from the mentioned position.
-                            //No. of arguments to be copied are decided by len argument.
-                            //arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
-                            System.arraycopy(readData, 0, buffer, 0, available); //copy from readData array to buffer array
+                            /* A call to read(byte[], int) requesting up to available bytes will return with
+                            the data immediately (negative number for error) */
+                            ftDevice.read(readData, bytesAvailable);
+                            /* Create empty buffer array */
+                            byte[] buffer = new byte[bytesAvailable];
+                            /*
+                            arraycopy copies a source 'readData' array from a specific beginning position to the
+                            destination 'buffer' array from the mentioned position. No. of arguments to be copied
+                            are decided by len argument.
+                            arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
+                             */
+                            System.arraycopy(readData, 0, buffer, 0, bytesAvailable);
+
                             Log.w(TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
                             Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
-
-                            if (available % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
-                                Log.d(TAG, "received data (" + available + " bytes (" + ((float) available / PACKET_SIZE));
+                            if (bytesAvailable % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
+                                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ PACKET_SIZE));
                             } else {
-                                Log.d(TAG, "received data (" + available + " bytes ("+((float)available / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
+                                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
                             }
-                            //ENTER LOOP HERE
-
+                            // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
                             //android ftdi usb loop buffer example
 
 
-                            //Work we want completed
+                            //Work we want completed 
                             try {
-                                byte[] packet = buffer; // Store packet data
+                                /* Store packet data */
+                                byte[] packet = buffer;
                                 Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
                                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                                 ConnectionFactory factory;
                                 factory = new ConnectionFactory();
-                                factory.setHost("34.243.250.160"); //IP of the RabbitMQ Message Broker
+                                factory.setHost("34.244.11.71"); //IP of the RabbitMQ Message Broker
                                 factory.setUsername("user"); //RabbitMQ Username
                                 factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
                                 factory.setVirtualHost("/"); //RabbitMQ Virtual Host
@@ -391,54 +429,56 @@ public class BciService extends Service {
 
 
                                 for (int i = 0; i < packet.length; i++) {
-                                    //Log.w(TAG, "PROCESS_DATA 3:" + i +"|" + packet.length);
                                     JSONObject obj = new JSONObject();
                                     if (packet[i] == START_BYTE) {
-                                        //Log.w(TAG, "PROCESS_DATA 4:" + packet[i] +"|" + OpenBci.START_BYTE);
                                         if (packet.length > i + 32) {
                                             Log.w(TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
                                             Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
                                             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
                                             String dateString = simpleDateFormat.format(calendar.getTime()); //Create a new String using the date-time format
                                             obj.put("TS", dateString); // Create a Timestamp
-                                            //Byte 1 is reserving to use as a packet check-sum by OpenBCI protocol
-                                            //Byte 2 is EEG Packet Sample Number cast to an int and masked off the sign bits
-                                            Integer SampleNumber = new Integer(packet[i + 2] & 0xFF);
+                                            /*
+                                            Byte 1 is reserving to use as a packet check-sum by OpenBCI protocol
+                                            Byte 2 is EEG Packet Sample Number cast to an int and masked off the sign bits
+                                             */
+                                            Integer SampleNumber = packet[i + 2] & 0xFF;
                                             Log.w(TAG, "PROCESS_DATA 6:" + SampleNumber );
                                             obj.put("c", SampleNumber); //packet[i + 2] & 0xFF
-                                            //Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
-                                            //float ch1 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 2, i + 5));
-                                            obj.put("ch1", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 2, i + 5))));
+                                            /*
+                                            Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
+                                            float ch1 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 2, i + 5));
+                                            */
+                                            obj.put("ch1", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 2, i + 5)));
                                             //Bytes 6-8: Data value for EEG channel 2 and convert Byte To MicroVolts
                                             //float ch2 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 5, i + 8));
-                                            obj.put("ch2", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 5, i + 8))));
+                                            obj.put("ch2", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 5, i + 8)));
                                             //Bytes 9-11: Data value for EEG channel 3 and convert Byte To MicroVolts
                                             //float ch3 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 8, i + 11));
-                                            obj.put("ch3", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 8, i + 11))));
+                                            obj.put("ch3", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 8, i + 11)));
                                             //Bytes 12-14: Data value for EEG channel 4 and convert Byte To MicroVolts
                                             //float ch4 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 11, i + 14));
-                                            obj.put("ch4", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 11, i + 14))));
+                                            obj.put("ch4", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 11, i + 14)));
                                             //Bytes 15-17: Data value for EEG channel 5 and convert Byte To MicroVolts
                                             //float ch5 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 14, i + 17));
-                                            obj.put("ch5", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 14, i + 17))));
+                                            obj.put("ch5", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 14, i + 17)));
                                             //Bytes 18-20: Data value for EEG channel 6 and convert Byte To MicroVolts
                                             //float ch6 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 17, i + 20));
-                                            obj.put("ch6", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 17, i + 20))));
+                                            obj.put("ch6", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 17, i + 20)));
                                             //Bytes 21-23: Data value for EEG channel 7 and convert Byte To MicroVolts
                                             //float ch7 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 20, i + 23));
-                                            obj.put("ch7", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 20, i + 23))));
+                                            obj.put("ch7", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 20, i + 23)));
                                             //Bytes 24-26: Data value for EEG channel 8 and convert Byte To MicroVolts
                                             //float ch8 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 23, i + 26));
-                                            obj.put("ch8", new Float(OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 23, i + 26))));
+                                            obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(packet, i + 23, i + 26)));
                                             //Bytes 27-28: Data value for accelerometer channel X AY1-AY0
                                             //float accelX = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 26, i + 28));
-                                            obj.put("accelX", new Float(OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 26, i + 28))));
+                                            obj.put("accelX", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 26, i + 28)));
                                             //Bytes 29-30: Data value for accelerometer channel Y AY1-AY0
                                             //float accelY = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 28, i + 30));
-                                            obj.put("accelY", new Float(OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 28, i + 30))));
+                                            obj.put("accelY", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 28, i + 30)));
                                             //Bytes 31-32: Data value for accelerometer channel Z AZ1-AZ0
                                             //float accelZ = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 30, i + 32));
-                                            obj.put("accelZ", new Float(OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 30, i + 32))));
+                                            obj.put("accelZ", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(packet, i + 30, i + 32)));
 
                                             i = i + 32;
 
@@ -452,7 +492,7 @@ public class BciService extends Service {
                                             if (packet.length < BciService.TRANSFER_SIZE) {
                                                 if (packet.length % PACKET_SIZE != 0) {
                                                     remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
-                                                    Log.w(TAG, "PROCESS_DATA 9: " + remainingBytes);
+                                                    Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
                                                     Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
                                                 }
                                             }
@@ -476,7 +516,7 @@ public class BciService extends Service {
     }
 
 
-    //Create a Notification channel and set the importance
+    /* Create a Notification channel and set the importance */
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel serviceChannel = new NotificationChannel(
