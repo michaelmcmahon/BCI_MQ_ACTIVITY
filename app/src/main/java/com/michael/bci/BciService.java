@@ -319,15 +319,9 @@ public class BciService extends Service {
                 public void handleMessage(Message msg) {
                     Log.i(TAG, "USB handleMessage() 10 or not?" + msg.what);
                     if (msg.what == 10) {
-//                        final byte[] dataToSend = (byte[]) msg.obj;
                         final String writeData = (String) msg.obj;
                         SendMessage(writeData);
                         Log.d(TAG, "USB calling bulkTransfer() out: "+writeData);
-//                        final int len = mUsbConnection.bulkTransfer(mOutUsbEndpoint, dataToSend, dataToSend.length, 0);
-//                        Log.d(TAG, len + " of " + dataToSend.length + " sent.");
-//                        Intent sendIntent = new Intent(DATA_SENT_INTERNAL_INTENT);
-//                        sendIntent.putExtra(DATA_EXTRA, dataToSend);
-//                        sendBroadcast(sendIntent);
                     } else if (msg.what != 10) {
                         Looper.myLooper().quit();
                     }
@@ -398,7 +392,7 @@ public class BciService extends Service {
                             //android ftdi usb loop buffer example
 
 
-                            //Work we want completed 
+                            //Work we want completed
                             try {
                                 /* Store packet data */
                                 byte[] packet = buffer;
