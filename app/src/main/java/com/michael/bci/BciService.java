@@ -406,7 +406,7 @@ public class BciService extends Service {
                                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                                 ConnectionFactory factory;
                                 factory = new ConnectionFactory();
-                                factory.setHost("34.244.11.71"); //IP of the RabbitMQ Message Broker
+                                factory.setHost("54.217.31.30"); //IP of the RabbitMQ Message Broker
                                 factory.setUsername("user"); //RabbitMQ Username
                                 factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
                                 factory.setVirtualHost("/"); //RabbitMQ Virtual Host
@@ -525,7 +525,9 @@ public class BciService extends Service {
                     NotificationManager.IMPORTANCE_LOW
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
+            if (manager != null) {
+                manager.createNotificationChannel(serviceChannel);
+            }
         }
     }
 }
