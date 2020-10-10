@@ -385,7 +385,7 @@ public class BciService extends Service {
                                 Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
                             }
                             // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
-                            //android ftdi usb loop buffer example
+                            // Maybe an android ftdi usb loop buffer
 
 
                             //Work we want completed
@@ -396,7 +396,7 @@ public class BciService extends Service {
                                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                                 ConnectionFactory factory;
                                 factory = new ConnectionFactory();
-                                factory.setHost("3.250.217.103"); //IP of the RabbitMQ Message Broker
+                                factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
                                 factory.setUsername("user"); //RabbitMQ Username
                                 factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
                                 factory.setVirtualHost("/"); //RabbitMQ Virtual Host
@@ -423,6 +423,8 @@ public class BciService extends Service {
                                     if (packet[i] == START_BYTE) {
                                         if (packet.length > i + 32) {
                                             Log.w(TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
+
+                                            /* JSON construction is in its own jsonBciConstructor method */
                                             jsonBciConstructor(packet, i, obj);
 
                                             i = i + 32;
@@ -431,8 +433,6 @@ public class BciService extends Service {
                                             //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
 
                                             channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
-
-
                                         } else {
                                             if (packet.length < BciService.TRANSFER_SIZE) {
                                                 if (packet.length % PACKET_SIZE != 0) {
@@ -461,11 +461,12 @@ public class BciService extends Service {
     }
 
     /*
-Getting this warning because org.json.simple.JSONObject uses raw type collections internally
-- need to change to a library which supports generics to be more type safe.
-*/
+    Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
+    collections internally - need to change to a library which supports generics to be more type safe.
+    */
     @SuppressWarnings(value = "unchecked")
 
+    /* BCI EEG Data JSON construction method */
     private void jsonBciConstructor(byte[] packet, int i, JSONObject obj) {
         Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
