@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 /* To begin data streaming, transmit a single ASCII b */
                 toggleStreamingButton.setText("stop streaming");
                 streaming = true;
-               // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
+                // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
                 Intent intent = new Intent(BciService.SEND_COMMAND);
                 intent.putExtra(BciService.COMMAND_EXTRA, "b");
                 Log.e(TAG, "Send Command - b");
@@ -172,12 +172,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
 
-/*
-Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
-we create a PendingIntent that goes to the IntentService created in the ActivityRecognizedService class,
-and passes it to the ActivityRecognitionApi. We can set an interval for how often the API should check
-the user's activity e.g. value of 1000, or one second.
- */
+    /*
+    Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
+    we create a PendingIntent that goes to the IntentService created in the ActivityRecognizedService class,
+    and passes it to the ActivityRecognitionApi. We can set an interval for how often the API should check
+    the user's activity e.g. value of 1000, or one second.
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //Before request API request, GoogleApiClient must be in connected mode.

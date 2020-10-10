@@ -27,17 +27,17 @@ class OpenBci {
     this function is passed a 3 byte array
      */
     private static int interpret24bitAsInt32(byte[] byteArray) {
-            int newInt = (
-                    ((0xFF & byteArray[0]) << 16) |
-                    ((0xFF & byteArray[1]) << 8) |
-                            (0xFF & byteArray[2])
-            );
-            if ((newInt & 0x00800000) > 0) {
-                newInt |= 0xFF000000;
-            } else {
-                newInt &= 0x00FFFFFF;
-            }
-            return newInt;
+        int newInt = (
+                ((0xFF & byteArray[0]) << 16) |
+                        ((0xFF & byteArray[1]) << 8) |
+                        (0xFF & byteArray[2])
+        );
+        if ((newInt & 0x00800000) > 0) {
+            newInt |= 0xFF000000;
+        } else {
+            newInt &= 0x00FFFFFF;
+        }
+        return newInt;
     }
 
     /*
