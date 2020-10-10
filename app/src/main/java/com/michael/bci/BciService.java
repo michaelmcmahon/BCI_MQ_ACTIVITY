@@ -357,107 +357,115 @@ public class BciService extends Service {
                     synchronized (lockObj) {
                         /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
                         int bytesAvailable = ftDevice.getQueueStatus();
-                        /* Ensure bytes available are not greater than TRANSFER_SIZE */
-                        if (bytesAvailable > 0) {
-                            if (bytesAvailable > TRANSFER_SIZE) {
-                                bytesAvailable = TRANSFER_SIZE;
-                            }
-                            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
 
-                            /* A call to read(byte[], int) requesting up to available bytes will return with
-                            the data immediately (negative number for error) */
-                            ftDevice.read(readData, bytesAvailable);
-                            /* Create empty buffer array */
-                            byte[] buffer = new byte[bytesAvailable];
-                            /*
-                            arraycopy copies a source 'readData' array from a specific beginning position to the
-                            destination 'buffer' array from the mentioned position. No. of arguments to be copied
-                            are decided by len argument.
-                            arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
-                             */
-                            System.arraycopy(readData, 0, buffer, 0, bytesAvailable);
-
-                            Log.w(TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
-                            Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
-                            if (bytesAvailable % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
-                                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ PACKET_SIZE));
-                            } else {
-                                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
-                            }
-                            // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
-                            // Maybe an android ftdi usb loop buffer
-
-
-                            //Work we want completed
-                            try {
-                                /* Store packet data */
-                                byte[] packet = buffer;
-                                Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
-                                String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
-                                ConnectionFactory factory;
-                                factory = new ConnectionFactory();
-                                factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
-                                factory.setUsername("user"); //RabbitMQ Username
-                                factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
-                                factory.setVirtualHost("/"); //RabbitMQ Virtual Host
-                                factory.setPort(5672); //RabbitMQ Message Broker Port
-                                Connection connection = factory.newConnection();
-                                Channel channel = connection.createChannel();
-                                channel.queueDeclare(QUEUE_NAME, false, false, false, null);
-
-
-                                if (packet[0] != START_BYTE) {
-                                    if (remainingBytes != null) {
-                                        byte[] dataTmp = new byte[remainingBytes.length + packet.length];
-                                        System.arraycopy(remainingBytes, 0, dataTmp, 0, remainingBytes.length);
-                                        System.arraycopy(packet, 0, dataTmp, remainingBytes.length, packet.length);
-                                        remainingBytes = null;
-                                        packet = dataTmp;
-                                    }
-                                }
-
-
-
-                                for (int i = 0; i < packet.length; i++) {
-                                    JSONObject obj = new JSONObject();
-                                    if (packet[i] == START_BYTE) {
-                                        if (packet.length > i + 32) {
-                                            Log.w(TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
-
-                                            /* JSON construction is in its own jsonBciConstructor method */
-                                            jsonBciConstructor(packet, i, obj);
-
-                                            i = i + 32;
-
-                                            //Log.w(TAG, "PROCESS_DATA 7: " + SampleNumber + ", " + ch1 + ", " + ch2 + "," + ch3 + ", " + ch4 + "," + ch5 + "," + ch6 + "," + ch7 +"," + ch8);
-                                            //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
-
-                                            channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
-                                        } else {
-                                            if (packet.length < BciService.TRANSFER_SIZE) {
-                                                if (packet.length % PACKET_SIZE != 0) {
-                                                    remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
-                                                    Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
-                                                    Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                channel.close();
-                                connection.close();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-
-                            //END LOOP HERE
-                        }
+                        /* Pass the bytes available info to the ReadQueue Method */
+                        ReadQueue(readData, bytesAvailable);
                     }
                 }
 
                 Log.d(TAG, "receiver thread stopped.");
             }
         }.start();
+    }
+
+    /* ReadQueue Method reads data from the ftDevice device queue
+    * Connects to the RabbitMQ broker and loops through the data */
+    private void ReadQueue(byte[] readData, int bytesAvailable) {
+        /* Ensure bytes available are not greater than TRANSFER_SIZE */
+        if (bytesAvailable > 0) {
+            if (bytesAvailable > TRANSFER_SIZE) {
+                bytesAvailable = TRANSFER_SIZE;
+            }
+            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
+
+            /* A call to read(byte[], int) requesting up to available bytes will return with
+            the data immediately (negative number for error) */
+            ftDevice.read(readData, bytesAvailable);
+            /* Create empty buffer array */
+            byte[] buffer = new byte[bytesAvailable];
+            /*
+            arraycopy copies a source 'readData' array from a specific beginning position to the
+            destination 'buffer' array from the mentioned position. No. of arguments to be copied
+            are decided by len argument.
+            arraycopy(Object source_arr, int sourcePos, Object dest_arr, int destPos, int len)
+             */
+            System.arraycopy(readData, 0, buffer, 0, bytesAvailable);
+
+            Log.w(TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
+            Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
+            if (bytesAvailable % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
+                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ PACKET_SIZE));
+            } else {
+                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
+            }
+            // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
+            // Maybe an android ftdi usb loop buffer
+
+
+            //Work we want completed
+            try {
+                /* Store packet data */
+                byte[] packet = buffer;
+                Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
+                String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
+                ConnectionFactory factory;
+                factory = new ConnectionFactory();
+                factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
+                factory.setUsername("user"); //RabbitMQ Username
+                factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
+                factory.setVirtualHost("/"); //RabbitMQ Virtual Host
+                factory.setPort(5672); //RabbitMQ Message Broker Port
+                Connection connection = factory.newConnection();
+                Channel channel = connection.createChannel();
+                channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+
+
+                if (packet[0] != START_BYTE) {
+                    if (remainingBytes != null) {
+                        byte[] dataTmp = new byte[remainingBytes.length + packet.length];
+                        System.arraycopy(remainingBytes, 0, dataTmp, 0, remainingBytes.length);
+                        System.arraycopy(packet, 0, dataTmp, remainingBytes.length, packet.length);
+                        remainingBytes = null;
+                        packet = dataTmp;
+                    }
+                }
+
+
+
+                for (int i = 0; i < packet.length; i++) {
+                    JSONObject obj = new JSONObject();
+                    if (packet[i] == START_BYTE) {
+                        if (packet.length > i + 32) {
+                            Log.w(TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
+
+                            /* JSON construction is in its own jsonBciConstructor method */
+                            jsonBciConstructor(packet, i, obj);
+
+                            i = i + 32;
+
+                            //Log.w(TAG, "PROCESS_DATA 7: " + SampleNumber + ", " + ch1 + ", " + ch2 + "," + ch3 + ", " + ch4 + "," + ch5 + "," + ch6 + "," + ch7 +"," + ch8);
+                            //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
+
+                            channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
+                        } else {
+                            if (packet.length < BciService.TRANSFER_SIZE) {
+                                if (packet.length % PACKET_SIZE != 0) {
+                                    remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
+                                    Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
+                                    Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
+                                }
+                            }
+                        }
+                    }
+                }
+                channel.close();
+                connection.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            //END LOOP HERE
+        }
     }
 
     /*
