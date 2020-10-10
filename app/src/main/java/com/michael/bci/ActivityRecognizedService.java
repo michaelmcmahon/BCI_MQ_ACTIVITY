@@ -35,12 +35,12 @@ public class ActivityRecognizedService extends IntentService {
     public ActivityRecognizedService(String name) {
         super(name);
     }
-/*
-In the onHandleIntent() method of ActivityRecognizedService we validate that the received Intent contains
-activity recognition data and, if so, then extract the ActivityRecognitionResult from the Intent to see what
-activities the user might be performing by calling getProbableActivities() on the ActivityRecognitionResult
-object.
- */
+    /*
+    In the onHandleIntent() method of ActivityRecognizedService we validate that the received Intent contains
+    activity recognition data and, if so, then extract the ActivityRecognitionResult from the Intent to see what
+    activities the user might be performing by calling getProbableActivities() on the ActivityRecognitionResult
+    object.
+     */
     @Override
     protected void onHandleIntent(Intent intent) {
         if(ActivityRecognitionResult.hasResult(intent)) {
@@ -49,18 +49,24 @@ object.
         }
     }
 
-/*
-In the handleDetectedActivities method we connect to the RabbitMQ 'activity' Queue and send timestamped
-data of each activity that has been detected and how confident Google Play Services is that the user is
-performing that activity by calling getConfidence() on a DetectedActivity instance.
- */
+    /*
+    Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
+    collections internally - need to change to a library which supports generics to be more type safe.
+    */
+   // @SuppressWarnings(value = "unchecked")
+
+    /*
+    In the handleDetectedActivities method we connect to the RabbitMQ 'activity' Queue and send timestamped
+    data of each activity that has been detected and how confident Google Play Services is that the user is
+    performing that activity by calling getConfidence() on a DetectedActivity instance.
+     */
     private void handleDetectedActivities(List<DetectedActivity> probableActivities) {
 
         try {
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
             ConnectionFactory factory;
             factory = new ConnectionFactory();
-            factory.setHost("34.244.11.71"); //IP of the RabbitMQ Message Broker
+            factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
             factory.setUsername("user"); //RabbitMQ Username
             factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
             factory.setVirtualHost("/"); //RabbitMQ Virtual Host
@@ -78,11 +84,11 @@ performing that activity by calling getConfidence() on a DetectedActivity instan
                 obj.put("TS", dateString); // Create a Timestamp
 
                 if (activity.getType() == DetectedActivity.IN_VEHICLE && activity.getConfidence() >= 0) {
-                   obj.put("In Vehicle: ", +activity.getConfidence());
-                   Log.e("ActivityRecogition", "In Vehicle: " + activity.getConfidence());
-               } else {
-                   obj.put("In Vehicle:", 0);
-               }
+                    obj.put("In Vehicle: ", +activity.getConfidence());
+                    Log.e("ActivityRecogition", "In Vehicle: " + activity.getConfidence());
+                } else {
+                    obj.put("In Vehicle:", 0);
+                }
                 if (activity.getType() == DetectedActivity.ON_BICYCLE && activity.getConfidence() >= 0) {
                     obj.put("On Bicycle: ", +activity.getConfidence());
                     Log.e("ActivityRecogition", "On Bicycle: " + activity.getConfidence());
