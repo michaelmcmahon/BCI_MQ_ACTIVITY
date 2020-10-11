@@ -53,7 +53,7 @@ public class ActivityRecognizedService extends IntentService {
     Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
     collections internally - need to change to a library which supports generics to be more type safe.
     */
-   // @SuppressWarnings(value = "unchecked")
+   @SuppressWarnings(value = "unchecked")
 
     /*
     In the handleDetectedActivities method we connect to the RabbitMQ 'activity' Queue and send timestamped
