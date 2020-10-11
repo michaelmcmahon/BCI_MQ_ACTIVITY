@@ -50,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     onCreate() is called when the activity is first created to do all static set up: create views,
     bind data to lists, etc. This method also provides a Bundle containing the activity's previously
     frozen state, if there was one.
+    For OpenBCI commands reference https://docs.openbci.com/docs/02Cyton/CytonSDK
      */
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,12 +60,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         toggleStreamingButton = findViewById(R.id.button2);
         CheckBox testSignalCheckBox = findViewById(R.id.checkBox);
 
+        /*
+        Turn all available channels on, and connect them to internal test signal.
+        These are useful for self test and calibration.
+        0 Connect to internal GND (VDD - VSS)
+        - Connect to test signal 1xAmplitude, slow pulse
+        = Connect to test signal 1xAmplitude, fast pulse
+        p Connect to DC signal
+        [ Connect to test signal 2xAmplitude, slow pulse
+        ] Connect to test signal 2xAmplitude, fast pulse
+        */
         testSignalCheckBox.setChecked(false);
         testSignalCheckBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             String cmd;
             if (isChecked) {
+                /* '-' Connect to test signal 1xAmplitude, slow pulse */
                 cmd = "-";
             } else {
+                /* Send 'd' to set all channels to default */
                 cmd = "d";
             }
             Log.e(TAG, "Send Command - " + cmd);
@@ -73,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             sendBroadcast(intent);
         });
 
+        /* Send 'v' to soft reset for the Board peripherals */
         button.setOnClickListener(v -> {
             Intent intent = new Intent(BciService.SEND_COMMAND);
             intent.putExtra(BciService.COMMAND_EXTRA, "v");
@@ -99,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 intent.putExtra(BciService.COMMAND_EXTRA, "s");
                 Log.e(TAG, "Send Command - s");
                 sendBroadcast(intent);
-                stopOpenBciService(); //Stop BCI Service
+                stopOpenBciService();  //MAYBE REMOVE THIS AND RELY ON ACTION_USB_ACCESSORY_DETACHED???
             }
         });
 
