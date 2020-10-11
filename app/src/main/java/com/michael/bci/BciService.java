@@ -409,12 +409,7 @@ public class BciService extends Service {
                 Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
                 String QUEUE_NAME = "json-example"; //RabbitMQ Queue Name
                 ConnectionFactory factory;
-                factory = new ConnectionFactory();
-                factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
-                factory.setUsername("user"); //RabbitMQ Username
-                factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
-                factory.setVirtualHost("/"); //RabbitMQ Virtual Host
-                factory.setPort(5672); //RabbitMQ Message Broker Port
+                factory = RabbitmqConnection.getConnectionFactory();
                 Connection connection = factory.newConnection();
                 Channel channel = connection.createChannel();
                 channel.queueDeclare(QUEUE_NAME, false, false, false, null);
