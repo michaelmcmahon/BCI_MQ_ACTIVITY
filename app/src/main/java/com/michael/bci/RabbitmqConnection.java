@@ -8,7 +8,7 @@ public class RabbitmqConnection {
     public static ConnectionFactory getConnectionFactory() {
         ConnectionFactory factory;
         factory = new ConnectionFactory();
-        factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
+        factory.setHost("54.154.101.254"); //IP of the RabbitMQ Message Broker
         factory.setUsername("user"); //RabbitMQ Username
         factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
         factory.setVirtualHost("/"); //RabbitMQ Virtual Host
