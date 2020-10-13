@@ -12,11 +12,23 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 
+/* BciReceiver class groups methods for receiving data from the OpenBCI Board */
 public class BciReceiver {
 
-    /*
-        Method to create thread which will receive and process data from the OpenBCI Cyton Board
-        */
+    public final static String TAG = "BCI_RECEIVER";
+
+    public static final int TRANSFER_SIZE = 256; //512 | 1024
+    /* One byte header 0x41 then 31 bytes of data followed by 0xCX where X is 0-F in hex */
+    public static final byte PACKET_SIZE = (byte) 33;
+    /* Header Byte 1: 0xA0 */
+    public static final byte START_BYTE = (byte) 0xA0;
+    public byte[] overflowBuffer = new byte[TRANSFER_SIZE*2]; //If I need a larger buffer size
+    public byte[] remainingBytes;
+
+    /* Ensure startReceiverThread block is synchronized on "private final" field */
+    private final Object lockObj = new Object();
+
+    /* Method to create thread which will receive and process data from the OpenBCI Cyton Board */
     void startReceiverThread(BciService bciService) {
 
         bciService.receiverThreadRunning = true;
@@ -24,7 +36,7 @@ public class BciReceiver {
         //CONSIDER Runnable runnable = new Runnable()
         new Thread("receiver") {
             public void run() {
-                byte[] readData = new byte[BciService.TRANSFER_SIZE];
+                byte[] readData = new byte[TRANSFER_SIZE];
 
                 // todo receiverThreadRunning == true
                 while (bciService.receiverThreadRunning) {
@@ -34,7 +46,7 @@ public class BciReceiver {
                         // Say something?
                     }
 
-                    synchronized (bciService.lockObj) {
+                    synchronized (lockObj) {
                         /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
                         int bytesAvailable = bciService.ftDevice.getQueueStatus();
 
@@ -43,20 +55,20 @@ public class BciReceiver {
                     }
                 }
 
-                Log.d(BciService.TAG, "receiver thread stopped.");
+                Log.d(TAG, "receiver thread stopped.");
             }
         }.start();
     }
 
     /* ReadQueue Method reads data from the ftDevice device queue
-    * Connects to the RabbitMQ broker and loops through the data */
+     * Connects to the RabbitMQ broker and loops through the data */
     public void ReadQueue(byte[] readData, int bytesAvailable, BciService bciService) {
         /* Ensure bytes available are not greater than TRANSFER_SIZE */
         if (bytesAvailable > 0) {
-            if (bytesAvailable > BciService.TRANSFER_SIZE) {
-                bytesAvailable = BciService.TRANSFER_SIZE;
+            if (bytesAvailable > TRANSFER_SIZE) {
+                bytesAvailable = TRANSFER_SIZE;
             }
-            Log.d(BciService.TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
+            Log.d(TAG, "PROCESS_DATA 1a - queStatus: " + bytesAvailable);
 
             /* A call to read(byte[], int) requesting up to available bytes will return with
             the data immediately (negative number for error) */
@@ -71,12 +83,12 @@ public class BciReceiver {
              */
             System.arraycopy(readData, 0, buffer, 0, bytesAvailable);
 
-            Log.w(BciService.TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
-            Log.w(BciService.TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
-            if (bytesAvailable % BciService.PACKET_SIZE == 0 && readData[0] == BciService.START_BYTE) {
-                Log.d(BciService.TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ BciService.PACKET_SIZE));
+            Log.w(TAG, "PROCESS_DATA 1c - Broadcast Intent:" + Arrays.toString(readData));
+            Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(buffer));
+            if (bytesAvailable % PACKET_SIZE == 0 && readData[0] == START_BYTE) {
+                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ PACKET_SIZE));
             } else {
-                Log.d(BciService.TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / BciService.PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
+                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / PACKET_SIZE)+", but packet size/start byte (" + readData[0] + ") is incorrect");
             }
             // ENTER LOOP HERE OR BROADCAST INTENT & SETUP RECEIVER
             // Maybe an android ftdi usb loop buffer
@@ -86,7 +98,7 @@ public class BciReceiver {
             try {
                 /* Store packet data */
                 byte[] packet = buffer;
-                Log.w(BciService.TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
+                Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(packet));
                 String QUEUE_NAME = "bci_data"; //RabbitMQ Queue Name
                 ConnectionFactory factory;
                 factory = RabbitmqConnection.getConnectionFactory();
@@ -95,12 +107,12 @@ public class BciReceiver {
                 channel.queueDeclare(QUEUE_NAME, false, false, false, null);
 
 
-                if (packet[0] != BciService.START_BYTE) {
-                    if (bciService.remainingBytes != null) {
-                        byte[] dataTmp = new byte[bciService.remainingBytes.length + packet.length];
-                        System.arraycopy(bciService.remainingBytes, 0, dataTmp, 0, bciService.remainingBytes.length);
-                        System.arraycopy(packet, 0, dataTmp, bciService.remainingBytes.length, packet.length);
-                        bciService.remainingBytes = null;
+                if (packet[0] != START_BYTE) {
+                    if (remainingBytes != null) {
+                        byte[] dataTmp = new byte[remainingBytes.length + packet.length];
+                        System.arraycopy(remainingBytes, 0, dataTmp, 0, remainingBytes.length);
+                        System.arraycopy(packet, 0, dataTmp, remainingBytes.length, packet.length);
+                        remainingBytes = null;
                         packet = dataTmp;
                     }
                 }
@@ -109,9 +121,9 @@ public class BciReceiver {
 
                 for (int i = 0; i < packet.length; i++) {
                     JSONObject obj = new JSONObject();
-                    if (packet[i] == BciService.START_BYTE) {
+                    if (packet[i] == START_BYTE) {
                         if (packet.length > i + 32) {
-                            Log.w(BciService.TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
+                            Log.w(TAG, "PROCESS_DATA 5:" + packet.length +"|" + i );
 
                             /* JSON construction is in its own jsonBciConstructor method */
                             new BciReceiver().jsonBciConstructor(packet, i, obj);
@@ -123,11 +135,11 @@ public class BciReceiver {
 
                             channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
                         } else {
-                            if (packet.length < BciService.TRANSFER_SIZE) {
-                                if (packet.length % BciService.PACKET_SIZE != 0) {
-                                    bciService.remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
-                                    Log.w(BciService.TAG, "PROCESS_DATA 9: " + Arrays.toString(bciService.remainingBytes));
-                                    Log.w(BciService.TAG, "PROCESS_DATA 10: " + Arrays.toString(bciService.remainingBytes));
+                            if (packet.length < TRANSFER_SIZE) {
+                                if (packet.length % PACKET_SIZE != 0) {
+                                   remainingBytes = Arrays.copyOfRange(packet, i, packet.length - 1);
+                                    Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
+                                    Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
                                 }
                             }
                         }
@@ -144,9 +156,9 @@ public class BciReceiver {
     }
 
     /*
-        Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
-        collections internally - need to change to a library which supports generics to be more type safe.
-        */
+    Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
+    collections internally - need to change to a library which supports generics to be more type safe.
+     */
     @SuppressWarnings(value = "unchecked")
 
     /* BCI EEG Data JSON construction method */
@@ -160,7 +172,7 @@ public class BciReceiver {
         Byte 2 is EEG Packet Sample Number cast to an int and masked off the sign bits
         */
         Integer SampleNumber = packet[i + 2] & 0xFF;
-        Log.w(BciService.TAG, "PROCESS_DATA 6:" + SampleNumber );
+        Log.w(TAG, "PROCESS_DATA 6:" + SampleNumber );
         obj.put("c", SampleNumber); //packet[i + 2] & 0xFF
          /*
          Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
