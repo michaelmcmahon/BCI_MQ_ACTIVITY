@@ -53,7 +53,7 @@ public class ActivityRecognizedService extends IntentService {
     Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
     collections internally - need to change to a library which supports generics to be more type safe.
     */
-   // @SuppressWarnings(value = "unchecked")
+   @SuppressWarnings(value = "unchecked")
 
     /*
     In the handleDetectedActivities method we connect to the RabbitMQ 'activity' Queue and send timestamped
@@ -65,12 +65,7 @@ public class ActivityRecognizedService extends IntentService {
         try {
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
             ConnectionFactory factory;
-            factory = new ConnectionFactory();
-            factory.setHost("3.250.47.232"); //IP of the RabbitMQ Message Broker
-            factory.setUsername("user"); //RabbitMQ Username
-            factory.setPassword("VIIu8eoVRYrH"); //RabbitMQ Password
-            factory.setVirtualHost("/"); //RabbitMQ Virtual Host
-            factory.setPort(5672); //RabbitMQ Message Broker Port
+            factory = RabbitmqConnection.getConnectionFactory();
             Connection connection = factory.newConnection();
             Channel channel = connection.createChannel();
             channel.queueDeclare(QUEUE_NAME, false, false, false, null);
