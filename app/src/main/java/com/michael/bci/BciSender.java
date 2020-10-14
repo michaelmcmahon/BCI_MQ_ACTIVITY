@@ -16,22 +16,6 @@ public class BciSender {
         bciService.mSenderThread.start();
     }
 
-    /* Send the actual OpenBCI command via FTDI to USB Dongle */
-    void SendMessage(String writeData, BciService bciService) {
-        /* The default FTDI latency is too large for EEG apps, making the incoming signal "choppy", Change from 16ms to 1ms */
-        bciService.ftDevice.setLatencyTimer((byte) 1);
-//        ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX)); //MAY NEED THIS
-//        String writeData = "v";//writeText.getText().toString(); //MAY NEED THIS
-        byte[] OutData = writeData.getBytes();
-        Log.w("PROCESS_DATA:", "OutData 0:" + OutData);
-        Log.w("PROCESS_DATA:", "OutData 1:" + Arrays.toString(OutData));
-        bciService.ftDevice.write(OutData, writeData.length());
-
-        if (bciService.ftDevice.isOpen() == false) {
-            Log.e("j2xx", "SendMessage: device not open");
-            return;
-        }
-    }
 
     public static class SenderThread extends Thread {
         private final BciService bciService;
@@ -57,6 +41,24 @@ public class BciSender {
             };
             Looper.loop();
             Log.i(BciService.TAG, "sender thread stopped");
+        }
+    }
+
+
+    /* Send the actual OpenBCI command via FTDI to USB Dongle */
+    void SendMessage(String writeData, BciService bciService) {
+        /* The default FTDI latency is too large for EEG apps, making the incoming signal "choppy", Change from 16ms to 1ms */
+        bciService.ftDevice.setLatencyTimer((byte) 1);
+//        ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX)); //MAY NEED THIS
+//        String writeData = "v";//writeText.getText().toString(); //MAY NEED THIS
+        byte[] OutData = writeData.getBytes();
+        Log.w("PROCESS_DATA:", "OutData 0:" + OutData);
+        Log.w("PROCESS_DATA:", "OutData 1:" + Arrays.toString(OutData));
+        bciService.ftDevice.write(OutData, writeData.length());
+
+        if (bciService.ftDevice.isOpen() == false) {
+            Log.e("j2xx", "SendMessage: device not open");
+            return;
         }
     }
 }
