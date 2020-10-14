@@ -195,40 +195,13 @@ public class BciService extends Service {
 
         /* Start the sender thread to send command to OpenBCI Board */
         new BciSender().startSenderThread(this);
+        
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
         return Service.START_REDELIVER_INTENT;
         //return Service.START_STICKY;
     }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "onDestroy()");
-        super.onDestroy();
-
-        ftDevice.purge(D2xxManager.FT_PURGE_RX);
-        receiverThreadRunning = false;
-
-        try {
-            Thread.sleep(SLEEP);
-        } catch (InterruptedException e) {
-            // ignore
-        }
-
-        if (null != ftDevice) {
-            try {
-                ftDevice.close();
-            } catch (Exception e) {
-                Log.e(TAG, "failed to close device", e);
-            }
-            ftDevice = null;
-        }
-        unregisterReceiver(mReceiver);
-        stopForeground(true);
-        Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
-    }
-
 
     /*
      * The BroadcastReceiver mReceiver method receives and handles broadcast intents
@@ -272,5 +245,32 @@ public class BciService extends Service {
             NotificationManager manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "onDestroy()");
+        super.onDestroy();
+
+        ftDevice.purge(D2xxManager.FT_PURGE_RX);
+        receiverThreadRunning = false;
+
+        try {
+            Thread.sleep(SLEEP);
+        } catch (InterruptedException e) {
+            // ignore
+        }
+
+        if (null != ftDevice) {
+            try {
+                ftDevice.close();
+            } catch (Exception e) {
+                Log.e(TAG, "failed to close device", e);
+            }
+            ftDevice = null;
+        }
+        unregisterReceiver(mReceiver);
+        stopForeground(true);
+        Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
     }
 }
