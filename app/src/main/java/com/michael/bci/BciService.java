@@ -12,10 +12,7 @@ import android.content.IntentFilter;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -25,11 +22,6 @@ import androidx.core.app.NotificationCompat;
 import com.ftdi.j2xx.D2xxManager; //management class for connected FTDI devices.
 import com.ftdi.j2xx.FT_Device; // provides APIs for the host to communicate and operate FTDI devices
 
-import org.json.simple.JSONObject;
-
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Objects;
 
 /*
@@ -48,31 +40,23 @@ import java.util.Objects;
 
 public class BciService extends Service {
 
-    public final static String TAG = "BCI_SERVICE 2";
+    public final static String TAG = "BCI_SERVICE";
     private static final String CHANNEL_ID = "BCI_1"; //Foreground Service Channel
-    public byte[] remainingBytes;
 
     private boolean mIsRunning = false;
-    private SenderThread mSenderThread;
+    public BciSender.SenderThread mSenderThread;
     private static D2xxManager ftD2xx = null;
     public FT_Device ftDevice = null;
-    /* Ensure startReceiverThread block is synchronized on "private final" field */
-    public final Object lockObj = new Object();
-    
-    public static final int TRANSFER_SIZE = 256; //512 | 1024
+
     public static final long SLEEP = 200;
     public static final int VENDOR_ID = 1027;
     public static final int BAUD_RATE = 115200;
-    /* One byte header 0x41 then 31 bytes of data followed by 0xCX where X is 0-F in hex */
-    public static final byte PACKET_SIZE = (byte) 33;
-    /* Header Byte 1: 0xA0 */
-    public static final byte START_BYTE = (byte) 0xA0;
+
     byte mStopBit = D2xxManager.FT_STOP_BITS_1;
     byte mDataBit = D2xxManager.FT_DATA_BITS_8;
     byte mParity = D2xxManager.FT_PARITY_NONE;
     /* FT_FLOW_NONE / FT_FLOW_RTS_CTS / FT_FLOW_DTR_DSR / FT_FLOW_XON_XOFF */
     short mFlowControl = D2xxManager.FT_FLOW_NONE;
-    byte[] overflowBuffer = new byte[TRANSFER_SIZE*2]; //Do I need a larger buffer size
 
     public volatile boolean receiverThreadRunning;
 
@@ -89,12 +73,12 @@ public class BciService extends Service {
     public D2xxManager.DriverParameters mDriverParameters;
 
     /*
-    Return the communication channel to the service.  May return null if clients can not bind to the
-    service. A bound service is an implementation of the Service class that allows other applications
-    to bind to it and interact with it. The onBind() callback method returns an IBinder object that
-    defines the programming interface that clients can use to interact with the service.
-    https://developer.android.com/guide/components/bound-services
-     */
+    * Return the communication channel to the service.  May return null if clients can not bind to the
+    * service. A bound service is an implementation of the Service class that allows other applications
+    * to bind to it and interact with it. The onBind() callback method returns an IBinder object that
+    * defines the programming interface that clients can use to interact with the service.
+    * https://developer.android.com/guide/components/bound-services
+    */
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -175,17 +159,17 @@ public class BciService extends Service {
         /* FTDI USB configured as serial port running at 115200 baud using typical 8-N-1. */
 
        /* Individual bits representing the data character. Fewer bits reduces the range of data,
-          but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc */
+        * but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc */
         byte dataBit = mDataBit;
        /* time interval to indicate the end of that character - can be configured to remain
-          idle for 1- or 2-bit durations.*/
+        * idle for 1- or 2-bit durations.*/
         byte stopBit = mStopBit;
-       /*Optional error checking value to indicate if the contents of the data bits sum to an
-         even or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
+       /* Optional error checking value to indicate if the contents of the data bits sum to an
+        * or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
         byte parity = mParity;
         /* Pull all above together and set the Data Characteristics */
         ftDevice.setDataCharacteristics(dataBit, stopBit, parity);
-        /*0:none, 1: flow control(CTS,RTS)*/
+        /* 0:none, 1: flow control(CTS,RTS) */
         short flowControl = mFlowControl;
         ftDevice.setFlowControl(flowControl, (byte) 0x0b, (byte) 0x0d);
         ftDevice.purge(D2xxManager.FT_PURGE_TX);
@@ -210,7 +194,7 @@ public class BciService extends Service {
         Toast.makeText(getBaseContext(), getString(R.string.receiving), Toast.LENGTH_SHORT).show();
 
         /* Start the sender thread to send command to OpenBCI Board */
-        startSenderThread();
+        new BciSender().startSenderThread(this);
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
@@ -246,12 +230,11 @@ public class BciService extends Service {
     }
 
 
-
     /*
-    SEND COMMAND TO OPENBCI BOARD - The BroadcastReceiver mReceiver method receives
-    and handles broadcast intents sent by sendBroadcast(Intent) from the Toggle Streaming Button
-    to start/stop streaming EEG data in the MainActivity Class OnCreate() Method.
-    */
+     * The BroadcastReceiver mReceiver method receives and handles broadcast intents
+     * sent by sendBroadcast(Intent) from the Toggle Streaming Button to start/stop
+     * streaming EEG data in the MainActivity Class OnCreate() Method.
+     */
     private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
         //        private SenderThread mSenderThread;
         @Override
@@ -268,64 +251,14 @@ public class BciService extends Service {
                     return;
                 }
                      /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
-                        queue and execute them on that Looper's thread.
-                        obtainMessage(), sets the what and obj members of the returned Message.
-                        what = int: Value of 10 assigned to the returned Message.what field.
-                        obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
+                      * queue and execute them on that Looper's thread.
+                      * obtainMessage(), sets the what and obj members of the returned Message.
+                      * what = int: Value of 10 assigned to the returned Message.what field.
+                      * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
                 mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
             }
         }
     };
-
-    private void SendMessage(String writeData) {
-        if (ftDevice.isOpen() == false) {
-            Log.e("j2xx", "SendMessage: device not open");
-            return;
-        }
-
-        //MAY NOT NEED THIS
-        ftDevice.setLatencyTimer((byte) 1); //The default FTDI latency is too large for EEG apps, making the incoming signal "choppy", Change from 16ms to 1ms
-
-        //MAY NEED THIS
-//        ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX));
-//        String writeData = "v";//writeText.getText().toString();
-
-        byte[] OutData = writeData.getBytes();
-        Log.w("PROCESS_DATA:", "OutData 0:" + OutData);
-        Log.w("PROCESS_DATA:", "OutData 1:" + Arrays.toString(OutData));
-        ftDevice.write(OutData, writeData.length());
-
-    }
-
-    /* Start the sender thread to send messages to the OpenBCI Cyton Board */
-    private void startSenderThread() {
-        mSenderThread = new SenderThread("OpenBCI_sender");
-        mSenderThread.start();
-    }
-
-    private class SenderThread extends Thread {
-        Handler mHandler;
-        SenderThread(String string) {
-            super(string);
-        }
-        public void run() {
-            Looper.prepare();
-            mHandler = new Handler() {
-                public void handleMessage(Message msg) {
-                    Log.i(TAG, "USB handleMessage() 10 or not?" + msg.what);
-                    if (msg.what == 10) {
-                        final String writeData = (String) msg.obj;
-                        SendMessage(writeData);
-                        Log.d(TAG, "USB calling bulkTransfer() out: "+writeData);
-                    } else if (msg.what != 10) {
-                        Looper.myLooper().quit();
-                    }
-                }
-            };
-            Looper.loop();
-            Log.i(TAG, "sender thread stopped");
-        }
-    }
 
 
     /* Create a Notification channel and set the importance */

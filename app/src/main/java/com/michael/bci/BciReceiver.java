@@ -12,7 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 
-/* BciReceiver class groups methods for receiving data from the OpenBCI Board */
+/* BciReceiver class groups methods for receiving data from the OpenBCI Board
+* The EEG data streams back from the Board to the App continuously (once started).*/
 public class BciReceiver {
 
     public final static String TAG = "BCI_RECEIVER";
