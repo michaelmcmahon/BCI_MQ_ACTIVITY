@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
@@ -195,11 +196,61 @@ public class BciService extends Service {
 
         /* Start the sender thread to send command to OpenBCI Board */
         new BciSender().startSenderThread(this);
+        
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
         return Service.START_REDELIVER_INTENT;
         //return Service.START_STICKY;
+    }
+
+    /*
+     * The BroadcastReceiver mReceiver method receives and handles broadcast intents
+     * sent by sendBroadcast(Intent) from the Toggle Streaming Button to start/stop
+     * streaming EEG data in the MainActivity Class OnCreate() Method.
+     */
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
+        //        private SenderThread mSenderThread;
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            Log.d(TAG, "BciService onReceive() " + action);
+
+            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    Log.i(TAG, "USB device has been removed from Android Phone");
+                    // call your method that cleans up and closes communication with the accessory
+                stopForeground(true);
+            }
+
+            if  (Objects.equals(intent.getAction(), SEND_COMMAND)){
+                final String dataToSend = intent.getStringExtra(COMMAND_EXTRA);
+                if (dataToSend == null) {
+                    Log.i(TAG, "No " + DATA_EXTRA + " extra in intent!");
+                    Toast.makeText(context, "No extra in Intent", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                     /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
+                      * queue and execute them on that Looper's thread.
+                      * obtainMessage(), sets the what and obj members of the returned Message.
+                      * what = int: Value of 10 assigned to the returned Message.what field.
+                      * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
+                    mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
+            }
+        }
+    };
+
+    /* Create a Notification channel and set the importance */
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "BCI_1",
+                    NotificationManager.IMPORTANCE_LOW
+            );
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(serviceChannel);
+        }
     }
 
     @Override
@@ -227,50 +278,5 @@ public class BciService extends Service {
         unregisterReceiver(mReceiver);
         stopForeground(true);
         Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
-    }
-
-
-    /*
-     * The BroadcastReceiver mReceiver method receives and handles broadcast intents
-     * sent by sendBroadcast(Intent) from the Toggle Streaming Button to start/stop
-     * streaming EEG data in the MainActivity Class OnCreate() Method.
-     */
-    private final BroadcastReceiver mReceiver = new BroadcastReceiver()  {
-        //        private SenderThread mSenderThread;
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            final String action = intent.getAction();
-            Log.d(TAG, "BciService onReceive() " + action);
-
-            if  (Objects.equals(intent.getAction(), SEND_COMMAND)){
-//                final byte[] dataToSend = intent.getByteArrayExtra(COMMAND_EXTRA);
-                final String dataToSend = intent.getStringExtra(COMMAND_EXTRA);
-                if (dataToSend == null) {
-                    Log.i(TAG, "No " + DATA_EXTRA + " extra in intent!");
-                    Toast.makeText(context, "No extra in Intent", Toast.LENGTH_LONG).show();
-                    return;
-                }
-                     /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
-                      * queue and execute them on that Looper's thread.
-                      * obtainMessage(), sets the what and obj members of the returned Message.
-                      * what = int: Value of 10 assigned to the returned Message.what field.
-                      * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
-                mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
-            }
-        }
-    };
-
-
-    /* Create a Notification channel and set the importance */
-    private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel serviceChannel = new NotificationChannel(
-                    CHANNEL_ID,
-                    "BCI_1",
-                    NotificationManager.IMPORTANCE_LOW
-            );
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
-        }
     }
 }
