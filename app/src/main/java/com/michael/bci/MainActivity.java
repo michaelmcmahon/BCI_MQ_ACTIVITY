@@ -35,7 +35,7 @@ use Google Play Services for Activity Detection.
 */
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    final static private String TAG = "BCI_SERVICE 1";
+    final static private String TAG = "BCI_MAIN";
 
     private Button toggleStreamingButton;
 
@@ -113,7 +113,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 intent.putExtra(BciService.COMMAND_EXTRA, "s");
                 Log.e(TAG, "Send Command - s");
                 sendBroadcast(intent);
-                stopOpenBciService();  //MAYBE REMOVE THIS AND RELY ON ACTION_USB_ACCESSORY_DETACHED???
             }
         });
 
@@ -134,21 +133,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
 
         mApiClient.connect();
-    }
-
-    @Override
-    /*
-    onNewIntent will launch the BCI service if USB dongle is attached via OTG and
-    stop the BCI service if USB dongle OTG device is removed
-    */
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        if (UsbManager.ACTION_USB_DEVICE_ATTACHED.contains(Objects.requireNonNull(intent.getAction()))) {
-            launchOpenBciService();
-        }
-        if (UsbManager.ACTION_USB_DEVICE_DETACHED.contains(intent.getAction())) {
-            stopOpenBciService();
-        }
     }
 
     /* Launch the OpenBCI Service */
@@ -180,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     /* Stop the OpenBCI Service */
-    private void stopOpenBciService() {
+    public void stopOpenBciService() {
         Intent intent = new Intent(getApplicationContext(), BciService.class);
         stopService(intent);
     }
