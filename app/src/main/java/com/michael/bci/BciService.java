@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.hardware.usb.UsbAccessory;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
@@ -215,24 +216,29 @@ public class BciService extends Service {
             final String action = intent.getAction();
             Log.d(TAG, "BciService onReceive() " + action);
 
+            if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+                    Log.i(TAG, "USB device has been removed from Android Phone");
+                    // call your method that cleans up and closes communication with the accessory
+                stopForeground(true);
+            }
+
             if  (Objects.equals(intent.getAction(), SEND_COMMAND)){
-//                final byte[] dataToSend = intent.getByteArrayExtra(COMMAND_EXTRA);
                 final String dataToSend = intent.getStringExtra(COMMAND_EXTRA);
                 if (dataToSend == null) {
                     Log.i(TAG, "No " + DATA_EXTRA + " extra in intent!");
                     Toast.makeText(context, "No extra in Intent", Toast.LENGTH_LONG).show();
                     return;
                 }
+
                      /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
                       * queue and execute them on that Looper's thread.
                       * obtainMessage(), sets the what and obj members of the returned Message.
                       * what = int: Value of 10 assigned to the returned Message.what field.
                       * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
-                mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
+                    mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
             }
         }
     };
-
 
     /* Create a Notification channel and set the importance */
     private void createNotificationChannel() {
