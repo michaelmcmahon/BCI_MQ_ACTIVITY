@@ -159,14 +159,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         } else {
             Intent intent = new Intent(getApplicationContext(), BciService.class);
             intent.putExtra(UsbManager.EXTRA_DEVICE, usbDevice);
-            startService(intent); //Start the OpenBCI Service
+            startService(intent); //Start the BciService
         }
     }
 
     /* Stop the OpenBCI Service */
     public void stopOpenBciService() {
         Intent intent = new Intent(getApplicationContext(), BciService.class);
-        stopService(intent);
+        stopService(intent); //the onDestroy() method in BciService class is called
     }
 
 
