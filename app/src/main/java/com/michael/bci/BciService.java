@@ -90,7 +90,6 @@ public class BciService extends Service {
     public void onCreate() {
         super.onCreate();
         IntentFilter filter = new IntentFilter();
-//      filter.addAction(SEND_DATA_INTENT);
         filter.addAction(UsbManager.ACTION_USB_DEVICE_DETACHED);
         filter.addAction(SEND_COMMAND);
         registerReceiver(mReceiver, filter);
@@ -118,12 +117,13 @@ public class BciService extends Service {
         startForeground(1, notification);
 
 
-        if (mIsRunning) {
-            Log.i(TAG, "Service already running.");
-            return Service.START_REDELIVER_INTENT;
-        }
+//        if (mIsRunning) {
+//            Log.i(TAG, "Service already running.");
+//            return Service.START_REDELIVER_INTENT;
+//        }
         /* obtain the UsbDevice that represents the attached device from the intent-filter set in AndroidManifest.xml */
         UsbDevice mUsbDevice = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+        Log.i(TAG, "obtain the UsbDevice");
 
         if (null == ftD2xx) {
             try {
@@ -200,8 +200,8 @@ public class BciService extends Service {
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
-        return Service.START_REDELIVER_INTENT;
-        //return Service.START_STICKY;
+//        return Service.START_REDELIVER_INTENT;
+        return Service.START_STICKY;
     }
 
     /*
