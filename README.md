@@ -21,4 +21,4 @@ Libs
 - slf4j-api-1.7.26.jar and slf4j-simple-1.7.26.jar (Simple Logging Facade for Java)
 
 RabbitMQ_Receiver_JSON Folder
-You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
+- You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
