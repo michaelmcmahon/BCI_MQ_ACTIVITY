@@ -27,6 +27,5 @@ HowTo
 - HowTo Step-by-Step doc - very much in progress at the moment.
 
 Main ToDo
-- USB Attach/Detach while running and resume app functionality needs more work 
 - Activity Recognition needs some refinement
 - FTDI Buffer RX/TX working but needs more analysis to run much more efficiently  
