@@ -29,4 +29,4 @@ HowTo
 Main ToDo
 - USB Attach/Detach while running and resume app functionality needs more work 
 - Activity Recognition needs some refinement
-- FTDI Buffer RX/TX working but needs more analysis to run much more effeciently  
+- FTDI Buffer RX/TX working but needs more analysis to run much more efficiently  
