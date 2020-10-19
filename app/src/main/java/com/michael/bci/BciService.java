@@ -74,12 +74,12 @@ public class BciService extends Service {
     public D2xxManager.DriverParameters mDriverParameters;
 
     /*
-    * Return the communication channel to the service.  May return null if clients can not bind to the
-    * service. A bound service is an implementation of the Service class that allows other applications
-    * to bind to it and interact with it. The onBind() callback method returns an IBinder object that
-    * defines the programming interface that clients can use to interact with the service.
-    * https://developer.android.com/guide/components/bound-services
-    */
+     * Return the communication channel to the service.  May return null if clients can not bind to the
+     * service. A bound service is an implementation of the Service class that allows other applications
+     * to bind to it and interact with it. The onBind() callback method returns an IBinder object that
+     * defines the programming interface that clients can use to interact with the service.
+     * https://developer.android.com/guide/components/bound-services
+     */
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -159,14 +159,14 @@ public class BciService extends Service {
 
         /* FTDI USB configured as serial port running at 115200 baud using typical 8-N-1. */
 
-       /* Individual bits representing the data character. Fewer bits reduces the range of data,
-        * but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc */
+        /* Individual bits representing the data character. Fewer bits reduces the range of data,
+         * but can increase the effective data transfer rate - 8:8bit, 7: 7bit etc */
         byte dataBit = mDataBit;
-       /* time interval to indicate the end of that character - can be configured to remain
-        * idle for 1- or 2-bit durations.*/
+        /* time interval to indicate the end of that character - can be configured to remain
+         * idle for 1- or 2-bit durations.*/
         byte stopBit = mStopBit;
-       /* Optional error checking value to indicate if the contents of the data bits sum to an
-        * or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
+        /* Optional error checking value to indicate if the contents of the data bits sum to an
+         * or odd value - 0: none, 1: odd, 2: even, 3: mark, 4: space*/
         byte parity = mParity;
         /* Pull all above together and set the Data Characteristics */
         ftDevice.setDataCharacteristics(dataBit, stopBit, parity);
@@ -196,7 +196,7 @@ public class BciService extends Service {
 
         /* Start the sender thread to send command to OpenBCI Board */
         new BciSender().startSenderThread(this);
-        
+
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
@@ -217,8 +217,8 @@ public class BciService extends Service {
             Log.d(TAG, "BciService onReceive() " + action);
 
             if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
-                    Log.i(TAG, "USB device has been removed from Android Phone");
-                    // call your method that cleans up and closes communication with the accessory
+                Log.i(TAG, "USB device has been removed from Android Phone");
+                // call your method that cleans up and closes communication with the accessory
                 stopForeground(true);
             }
 
@@ -230,12 +230,12 @@ public class BciService extends Service {
                     return;
                 }
 
-                     /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
-                      * queue and execute them on that Looper's thread.
-                      * obtainMessage(), sets the what and obj members of the returned Message.
-                      * what = int: Value of 10 assigned to the returned Message.what field.
-                      * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
-                    mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
+                /* mHandler is a Handler to deliver messages to the mSenderThread Looper's message
+                 * queue and execute them on that Looper's thread.
+                 * obtainMessage(), sets the what and obj members of the returned Message.
+                 * what = int: Value of 10 assigned to the returned Message.what field.
+                 * obj	= Object: Value to dataToSend assigned to the returned Message.obj field. This value may be null */
+                mSenderThread.mHandler.obtainMessage(10, dataToSend).sendToTarget();
             }
         }
     };
