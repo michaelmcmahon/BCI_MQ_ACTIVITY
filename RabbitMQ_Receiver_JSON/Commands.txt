@@ -1,0 +1,20 @@
+LIBS
+amqp-client-5.8.0.jar
+slf4j-simple-1.7.26.jar
+json-simple-1.1.1.jar
+
+EDIT
+Recv.java and add the IP address from AWS EC2 Instance => factory.setHost("YOUR AWS EC2 IP ADDRESS");
+Recv2.java and add the IP address from AWS EC2 Instance => factory.setHost("YOUR AWS EC2 IP ADDRESS");
+
+c:\>cd C:\dev\RabbitMQ_AWS2
+
+BUILD: 
+javac -cp ".;<YOUR LOCAL FILE LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv.java
+javac -cp ".;<YOUR LOCAL LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv2.java
+
+
+RUN:
+java -cp ".;<YOUR LOCAL FILE LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv.java
+java -cp ".;<YOUR LOCAL FILE LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv2.java
+
