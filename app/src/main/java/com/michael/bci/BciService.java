@@ -138,7 +138,7 @@ public class BciService extends Service {
         }
 
         /* connect */
-        if (null == ftDevice)
+        if (null == ftDevice || !ftDevice.isOpen())
         {
             ftDevice = ftD2xx.openByUsbDevice(this, mUsbDevice);
             Log.e(TAG, "USB: Connect to ftDevice");
