@@ -15,6 +15,6 @@ javac -cp ".;<YOUR LOCAL LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\js
 
 
 RUN:
-java -cp ".;<YOUR LOCAL FILE LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv.java
-java -cp ".;<YOUR LOCAL FILE LOCATION>\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv2.java
+java -cp ".;c:\dev\RabbitMQ_AWS2\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\slf4j-simple-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv.java
+java -cp ".;c:\dev\RabbitMQ_AWS2\amqp-client-5.8.0.jar;c:\dev\RabbitMQ_AWS2\slf4j-api-1.7.26.jar;c:\dev\RabbitMQ_AWS2\slf4j-simple-1.7.26.jar;c:\dev\RabbitMQ_AWS2\json-simple-1.1.1.jar" Recv2.java
 
