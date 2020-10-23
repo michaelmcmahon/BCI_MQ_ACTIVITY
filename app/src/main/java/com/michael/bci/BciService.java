@@ -67,8 +67,6 @@ public class BciService extends Service {
     final static String DATA_EXTRA = "bci.intent.extra.DATA";
     final static String SEND_COMMAND = "bci.intent.action.SEND_COMMAND";
     final static String COMMAND_EXTRA = "bci.intent.extra.COMMAND_EXTRA";
-    final static String SEND_DATA_INTENT = "bci.intent.action.SEND_DATA";
-    final static String DATA_SENT_INTERNAL_INTENT = "bci.internal.intent.action.DATA_SENT";
 
 
     public D2xxManager.DriverParameters mDriverParameters;
@@ -249,7 +247,9 @@ public class BciService extends Service {
                     NotificationManager.IMPORTANCE_LOW
             );
             NotificationManager manager = getSystemService(NotificationManager.class);
-            manager.createNotificationChannel(serviceChannel);
+            if (manager != null) {
+                manager.createNotificationChannel(serviceChannel);
+            }
         }
     }
 
