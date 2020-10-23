@@ -1,5 +1,8 @@
 # BCI_MQ_ACTIVITY_v1.0.0
-A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition
+A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition.  
+
+Android 
+The minSdkVersion for this App is set to level 26 (Android Version 8.0.0 - Oreo) and the targetSdkVersion level 29. 
 
 IDE
 - I used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
