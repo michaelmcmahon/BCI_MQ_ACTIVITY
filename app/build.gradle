@@ -34,5 +34,5 @@ dependencies {
     implementation files('libs/slf4j-simple-1.7.26.jar')
     implementation files('libs/slf4j-api-1.7.26.jar')
     implementation files('libs/json-simple-1.1.1.jar')
-    implementation 'com.google.android.gms:play-services:12.0.1'
+    implementation 'com.google.android.gms:play-services-location:17.1.0'
 }
