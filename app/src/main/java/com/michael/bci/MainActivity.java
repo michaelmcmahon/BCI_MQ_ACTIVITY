@@ -163,13 +163,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    /* Stop the OpenBCI Service */
-    public void stopOpenBciService() {
-        Intent intent = new Intent(getApplicationContext(), BciService.class);
-        stopService(intent); //the onDestroy() method in BciService class is called
-    }
-
-
     /*
     Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
     we create a PendingIntent that goes to the IntentService created in the ActivityRecognizedService class,
