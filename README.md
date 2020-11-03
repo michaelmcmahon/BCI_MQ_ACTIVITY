@@ -1,36 +1,4 @@
-# BCI_MQ_ACTIVITY_v1.0.0
-A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition
-
-IDE
-- I used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
-
-The main files are
-- AndroidManifest.xml (Configs)
-- MainActivity (Starting point and control of the app)
-- BciService (This class configures and manages the connection to the OpenBCI Cytron Board)
-- BciSender (This class contains sender thread to send commands to the OpenBCI Cyton Board)
-- BciReceiver (This class groups methods for receiving data from the OpenBCI Board)
-- OpenBci (Worker class that convert incoming EEG and accelerometer data into standard 32-bit signed integers)
-- ActivityRecognizedService (Gets the Phone Activity Recognition data and send it to the Cloud Message Broker) 
-- RabbitmqConnection: (Manages the connection details to the AWS RabbitMQ Broker)
-
-Libs
-- d2xx.jar (FTDI Driver to communicate with the OpenBCI Dongle)
-- json-simple-1.1.1.jar (simple Java toolkit to encode or decode JSON text)
-- amqp-client-5.8.0.jar (RabbitMQ Java client)
-- slf4j-api-1.7.26.jar and slf4j-simple-1.7.26.jar (Simple Logging Facade for Java)
-
-RabbitMQ_Receiver_JSON Folder
-- You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
-
-HowTo
-- HowTo Step-by-Step doc - very much in progress at the moment.
-
-Main ToDo
-- Activity Recognition needs some refinement
-- FTDI Buffer RX/TX working but needs more analysis to run much more efficiently 
-
-# How to Set Up & Run BCI MQ Activity Android App v1.0.0
+How to Set Up & Run BCI MQ Activity Android App v1.0.0
 
 
 Contents 
@@ -302,7 +270,6 @@ ACTIVITY data - which will create QUEUE and wait for messages which It
 is expecting to receive as a JSON string. Two example files are bundled
 with the project in the RabbitMQ_Receiver_JSON folder. You will need to
 add some configuration information specific to you setup.
-
 ```
 //We need to import some classes
 import org.json.simple.JSONObject;
@@ -383,7 +350,7 @@ should work fine.
 
 Once downloaded open the IDE
 
-![](HowToDoc/media/image20.jpg)
+![](HowToDoc/media/image21.jpeg)
 
 Setup Android Bridge Debug (ABD)
 ================================
@@ -446,7 +413,7 @@ Connect to the device by its IP address \'adb connect *IP address* \'
 Confirm that your host computer is connected to the target device by
 typing \'adb devices\'
 
-![](HowToDoc/media/image21.png)
+![](HowToDoc/media/image22.png)
 
 If the adb connection is ever lost make sure that your host is still
 connected to the same Wi-Fi network your Android device is on and
@@ -461,7 +428,7 @@ Download Source Code from GitHub here:
 <https://github.com/michaelmcmahon/BCI_MQ_ACTIVITY_v1.0.0> and open the
 project in Android Studio IDE
 
-![](HowToDoc/media/image22.png)
+![](HowToDoc/media/image23.png)
 
 The main files are
 
@@ -508,18 +475,18 @@ RabbitMQ_Receiver_JSON Folder
 In order to connect to your RabbitMQ broker you will need to add you IP
 Address, Username and Password to the RabbitmqConnection.
 
-![](HowToDoc/media/image23.png)
+![](HowToDoc/media/image24.png)
 
 Make sure your Android Debug Bridge (adb) is setup as per the
 instructions in Section 4 and you can connect to you Android Mobile
 Device.
 
-![](HowToDoc/media/image24.png)
+![](HowToDoc/media/image25.png)
 
 You now need to ensure you have selected your device from the Devices
 List dropdown in Android Studio.
 
-![](HowToDoc/media/image25.png)
+![](HowToDoc/media/image26.png)
 
 You should now be able to build and run the App and it will setup on
 your phone ready for use.
@@ -529,14 +496,15 @@ Connect and Setup the OpenBCI Dongle
 
 Firstly, you will need to connect the OpenBCI Dongle to an OTG cable
 
-![A circuit board Description automatically generated](HowToDoc/media/image26.jpeg)
+![A circuit board Description automatically generated](HowToDoc/media/image27.jpeg)
 
 Connect the Dongle to your mobile device and you should see a blue LED
 light up and stay on. When you first attach the Dongle you will get a
 pop-up on the Android Device asking if you want to allow the connection
-and if you want to associate that device with the App.
+and if you want to associate that device with the App. **NOTE:** Make sure 
+your USB Dongle is switched to GPIO 6 and not RESET
 
-**NOTE:** Make sure your USB Dongle is switched to GPIO 6 and not RESET
+![](HowToDoc/media/image28.jpeg)
 
 Next you will need to turn on your OpenBCI Board by moving the small
 switch on the right side of the board from \"OFF\" to \"PC\". As soon as
@@ -544,7 +512,7 @@ you do, you should see a blue LED turn on. If you don\'t, press the
 reset (RST) button just to the left of the switch. If the LED still does
 not turn on, make sure you have full battery.
 
-![](HowToDoc/media/image27.jpeg)
+![](HowToDoc/media/image29.jpeg)
 
 How to use the App
 ==================
@@ -552,7 +520,7 @@ How to use the App
 Open the App on you Android Mobile Devices and you should see the below
 screen.
 
-![](HowToDoc/media/image28.png)
+![](HowToDoc/media/image30.png)
 
 **TEST SIGNAL:** The Test Signal checkbox turns on all the available
 channels and connects them to an internal test signal. This feature is
