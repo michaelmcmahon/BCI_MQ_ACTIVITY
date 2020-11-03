@@ -303,80 +303,46 @@ is expecting to receive as a JSON string. Two example files are bundled
 with the project in the RabbitMQ_Receiver_JSON folder. You will need to
 add some configuration information specific to you setup.
 
-+----------------------------------------------------------------------+
-| //We need to import some classes                                     |
-|                                                                      |
-| import org.json.simple.JSONObject;                                   |
-|                                                                      |
-| import org.json.simple.parser.JSONParser;                            |
-|                                                                      |
-| import com.rabbitmq.client.Channel;                                  |
-|                                                                      |
-| import com.rabbitmq.client.Connection;                               |
-|                                                                      |
-| import com.rabbitmq.client.ConnectionFactory;                        |
-|                                                                      |
-| import com.rabbitmq.client.DeliverCallback;                          |
-|                                                                      |
-| //Set up the class and name the queue                                |
-|                                                                      |
-| public class Recv                                                    |
-|                                                                      |
-| {                                                                    |
-|                                                                      |
-| private final static String QUEUE_NAME = \"YOUR QUEUE NAME\"; //Set  |
-| your queue name                                                      |
-|                                                                      |
-| //then we can create a connection to the server                      |
-|                                                                      |
-| public static void main(String\[\] argv) throws Exception {          |
-|                                                                      |
-| ConnectionFactory factory = new ConnectionFactory();                 |
-|                                                                      |
-| factory.setHost(\"YOUR AWS EC2 IP ADDRESS\"); //Set your AWS EC2 IP  |
-| Address                                                              |
-|                                                                      |
-| factory.setUsername(\"YOUR AWS EC2 RABBITMQ USERNAME\"); //Set your  |
-| RabbitMQ Username                                                    |
-|                                                                      |
-| factory.setPassword(\"YOUR AWS EC2 RABBITMQ PASSWORD\"); //Set your  |
-| RabbitMQ Password                                                    |
-|                                                                      |
-| factory.setVirtualHost(\"/\");                                       |
-|                                                                      |
-| factory.setPort(5672);                                               |
-|                                                                      |
-| Connection connection = factory.newConnection();                     |
-|                                                                      |
-| //we open a channel, and declare the queue from which we\'re going   |
-| to consume                                                           |
-|                                                                      |
-| Channel channel = connection.createChannel();                        |
-|                                                                      |
-| channel.queueDeclare(QUEUE_NAME, false, false, false, null);         |
-|                                                                      |
-| System.out.println(\" \[\*\] Waiting for messages. To exit press     |
-| CTRL+C\");                                                           |
-|                                                                      |
-| //tell server to deliver messages from queue async and provide       |
-| callback to buffer messages                                          |
-|                                                                      |
-| DeliverCallback deliverCallback = (consumerTag, delivery) -\> {      |
-|                                                                      |
-| String message = new String(delivery.getBody(), \"UTF-8\");          |
-|                                                                      |
-| System.out.println(\" \[x\] Received \'\" + message + \"\'\");       |
-|                                                                      |
-| };                                                                   |
-|                                                                      |
-| channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag  |
-| -\> { });                                                            |
-|                                                                      |
-| }                                                                    |
-|                                                                      |
-| }                                                                    |
-+----------------------------------------------------------------------+
+```
+//We need to import some classes
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
+
+//Set up the class and name the queue
+public class Recv 
+{
+    private final static String QUEUE_NAME = "YOUR QUEUE NAME"; //Set your queue name
+
+//then we can create a connection to the server
+    public static void main(String[] argv) throws Exception {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setHost("YOUR AWS EC2 IP ADDRESS"); //Set your AWS EC2 IP Address
+        factory.setUsername("YOUR AWS EC2 RABBITMQ USERNAME"); //Set your RabbitMQ Username
+        factory.setPassword("YOUR AWS EC2 RABBITMQ PASSWORD"); //Set your RabbitMQ Password
+        factory.setVirtualHost("/");
+        factory.setPort(5672);
+        Connection connection = factory.newConnection();
+
+//we open a channel, and declare the queue from which we're going to consume        
+	Channel channel = connection.createChannel();
+        channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+        System.out.println(" [*] Waiting for messages. To exit press CTRL+C");
+
+//tell server to deliver messages from queue async and provide callback to buffer messages 
+        DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+            String message = new String(delivery.getBody(), "UTF-8");
+            System.out.println(" [x] Received '" + message + "'");
+        };
+        channel.basicConsume(QUEUE_NAME, true, deliverCallback, consumerTag -> { });
+    }
+}
+
+```
 You will need to use the following Libraries when building which are
 included in the RabbitMQ_Receiver_JSON Folder
 
