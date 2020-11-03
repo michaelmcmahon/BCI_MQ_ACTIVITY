@@ -383,7 +383,7 @@ should work fine.
 
 Once downloaded open the IDE
 
-![](HowToDoc/media/image20.jpeg)
+![](HowToDoc/media/image20.jpg)
 
 Setup Android Bridge Debug (ABD)
 ================================
