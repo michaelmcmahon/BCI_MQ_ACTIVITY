@@ -30,7 +30,7 @@ Main ToDo
 - Activity Recognition needs some refinement
 - FTDI Buffer RX/TX working but needs more analysis to run much more efficiently 
 
-How to Set Up & Run BCI MQ Activity Android App v1.0.0
+# How to Set Up & Run BCI MQ Activity Android App v1.0.0
 
 
 Contents 
