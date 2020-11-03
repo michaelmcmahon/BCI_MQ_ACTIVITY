@@ -350,7 +350,7 @@ should work fine.
 
 Once downloaded open the IDE
 
-![](HowToDoc/media/image21.jpeg)
+![](HowToDoc/media/image21.jpg)
 
 Setup Android Bridge Debug (ABD)
 ================================
@@ -496,7 +496,7 @@ Connect and Setup the OpenBCI Dongle
 
 Firstly, you will need to connect the OpenBCI Dongle to an OTG cable
 
-![A circuit board Description automatically generated](HowToDoc/media/image27.jpeg)
+![A circuit board Description automatically generated](HowToDoc/media/image27.jpg)
 
 Connect the Dongle to your mobile device and you should see a blue LED
 light up and stay on. When you first attach the Dongle you will get a
@@ -504,7 +504,7 @@ pop-up on the Android Device asking if you want to allow the connection
 and if you want to associate that device with the App. **NOTE:** Make sure 
 your USB Dongle is switched to GPIO 6 and not RESET
 
-![](HowToDoc/media/image28.jpeg)
+![](HowToDoc/media/image28.jpg)
 
 Next you will need to turn on your OpenBCI Board by moving the small
 switch on the right side of the board from \"OFF\" to \"PC\". As soon as
@@ -512,7 +512,7 @@ you do, you should see a blue LED turn on. If you don\'t, press the
 reset (RST) button just to the left of the switch. If the LED still does
 not turn on, make sure you have full battery.
 
-![](HowToDoc/media/image29.jpeg)
+![](HowToDoc/media/image29.jpg)
 
 How to use the App
 ==================
