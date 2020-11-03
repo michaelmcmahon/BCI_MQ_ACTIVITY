@@ -37,10 +37,6 @@ Main ToDo
 
 # How to set up & run BCI MQ Activity Android App v1.0.0
 
-
-## Contents 
-========
-
 [1 Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
 [1.1 Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
