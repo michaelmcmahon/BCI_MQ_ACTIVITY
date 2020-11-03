@@ -520,7 +520,7 @@ How to use the App
 Open the App on you Android Mobile Devices and you should see the below
 screen.
 
-![](HowToDoc/media/image30.png)
+![](HowToDoc/media/image30.jpg)
 
 **TEST SIGNAL:** The Test Signal checkbox turns on all the available
 channels and connects them to an internal test signal. This feature is
