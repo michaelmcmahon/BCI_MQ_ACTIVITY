@@ -37,10 +37,6 @@ Main ToDo
 
 # How to set up & run BCI MQ Activity Android App v1.0.0
 
-
-## Contents 
-========
-
 [1 Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
 [1.1 Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
@@ -357,6 +353,7 @@ included in the RabbitMQ_Receiver_JSON Folder
 -   json-simple-1.1.1.jar
 
 TO BUILD:
+Navigate to the folder containing your RECEIVER java files and the above Libs – then run:
 
 \>javac -cp \".;\<YOUR LOCAL
 LOCATION\>\\amqp-client-5.8.0.jar;c:\\dev\\RabbitMQ_AWS2\\json-simple-1.1.1.jar\"
@@ -378,6 +375,8 @@ LOCAL LOCATION\>\\slf4j-api-1.7.26.jar;\<YOUR LOCAL
 LOCATION\>\\slf4j-simple-1.7.26.jar;\<YOUR LOCAL
 LOCATION\>\\json-simple-1.1.1.jar\" Recv2.java
 
+![](HowToDoc/media/image21.jpg)
+
 Install Android Studio 
 ======================
 
@@ -387,7 +386,7 @@ should work fine.
 
 Once downloaded open the IDE
 
-![](HowToDoc/media/image21.jpg)
+![](HowToDoc/media/image22.jpg)
 
 Setup Android Bridge Debug (ABD)
 ================================
@@ -450,7 +449,7 @@ Connect to the device by its IP address \'adb connect *IP address* \'
 Confirm that your host computer is connected to the target device by
 typing \'adb devices\'
 
-![](HowToDoc/media/image22.png)
+![](HowToDoc/media/image23.png)
 
 If the adb connection is ever lost make sure that your host is still
 connected to the same Wi-Fi network your Android device is on and
@@ -465,7 +464,7 @@ Download Source Code from GitHub here:
 <https://github.com/michaelmcmahon/BCI_MQ_ACTIVITY_v1.0.0> and open the
 project in Android Studio IDE
 
-![](HowToDoc/media/image23.png)
+![](HowToDoc/media/image24.png)
 
 The main files are
 
@@ -512,18 +511,18 @@ RabbitMQ_Receiver_JSON Folder
 In order to connect to your RabbitMQ broker you will need to add you IP
 Address, Username and Password to the RabbitmqConnection.
 
-![](HowToDoc/media/image24.png)
+![](HowToDoc/media/image25.png)
 
 Make sure your Android Debug Bridge (adb) is setup as per the
 instructions in Section 4 and you can connect to you Android Mobile
 Device.
 
-![](HowToDoc/media/image25.png)
+![](HowToDoc/media/image26.png)
 
 You now need to ensure you have selected your device from the Devices
 List dropdown in Android Studio.
 
-![](HowToDoc/media/image26.png)
+![](HowToDoc/media/image27.png)
 
 You should now be able to build and run the App and it will setup on
 your phone ready for use.
@@ -533,7 +532,7 @@ Connect and Setup the OpenBCI Dongle
 
 Firstly, you will need to connect the OpenBCI Dongle to an OTG cable
 
-![A circuit board Description automatically generated](HowToDoc/media/image27.jpg)
+![A circuit board Description automatically generated](HowToDoc/media/image28.jpg)
 
 Connect the Dongle to your mobile device and you should see a blue LED
 light up and stay on. When you first attach the Dongle you will get a
@@ -541,7 +540,7 @@ pop-up on the Android Device asking if you want to allow the connection
 and if you want to associate that device with the App. **NOTE:** Make sure 
 your USB Dongle is switched to GPIO 6 and not RESET
 
-![](HowToDoc/media/image28.jpg)
+![](HowToDoc/media/image29.jpg)
 
 Next you will need to turn on your OpenBCI Board by moving the small
 switch on the right side of the board from \"OFF\" to \"PC\". As soon as
@@ -549,7 +548,11 @@ you do, you should see a blue LED turn on. If you don\'t, press the
 reset (RST) button just to the left of the switch. If the LED still does
 not turn on, make sure you have full battery.
 
-![](HowToDoc/media/image29.jpg)
+![](HowToDoc/media/image30.jpg)
+
+You should see a single red flash on the dongle as the OpenBCI Board and Dongle handshake and both are now connected.
+
+![](HowToDoc/media/image31.jpg)
 
 How to use the App
 ==================
@@ -557,7 +560,7 @@ How to use the App
 Open the App on you Android Mobile Devices and you should see the below
 screen.
 
-![](HowToDoc/media/image30.jpg)
+![](HowToDoc/media/image32.jpg)
 
 **TEST SIGNAL:** The Test Signal checkbox turns on all the available
 channels and connects them to an internal test signal. This feature is
@@ -589,4 +592,21 @@ until empty.
 
 **RESET:** Send \'v\' to send a soft reset for the Board peripherals
 
-WORK STILL IN PROGRESS
+When you click the “Start Streaming” button in the app the board will start 
+the EEG data streams from the Board to the App continuously once started until 
+you click "Stop Streaming" and you should see the RXD red light flickering as 
+data is transmitted.
+
+![](HowToDoc/media/image33.jpg)
+
+The App will start streaming both EEG and Activity Data to the two RabbitMQ 
+receivers you setup earlier
+
+EEG DATA STREAM
+
+![](HowToDoc/media/image34.jpg)
+
+ACTIVITY DATA STREAM
+
+![](HowToDoc/media/image35.jpg)
+
