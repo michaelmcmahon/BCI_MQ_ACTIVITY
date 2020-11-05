@@ -37,37 +37,37 @@ Main ToDo
 
 # How to set up & run BCI MQ Activity Android App v1.0.0
 
-[1 Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
+[Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
-[1.1 Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
+[Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
 
-[1.2 Generate an AWS Key Pair](#generate-an-aws-key-pair)
+[Generate an AWS Key Pair](#generate-an-aws-key-pair)
 
-[1.3 Create an AWS Security Group](#create-an-aws-security-group)
+[Create an AWS Security Group](#create-an-aws-security-group)
 
-[1.4 Deploy RabbitMQ on An AWS Cloud Server](#deploy-rabbitmq-on-an-aws-cloud-server)
+[Deploy RabbitMQ on An AWS Cloud Server](#deploy-rabbitmq-on-an-aws-cloud-server)
 
-[1.5 Log in to RabbitMQ Console](#log-in-to-rabbitmq-console)
+[Log in to RabbitMQ Console](#log-in-to-rabbitmq-console)
 
-[2 Create a RabbitMQ RECEIVE clients](#create-a-rabbitmq-receive-clients)
+[Create a RabbitMQ RECEIVE clients](#create-a-rabbitmq-receive-clients)
 
-[3 Install Android Studio](#install-android-studio)
+[Install Android Studio](#install-android-studio)
 
-[4 Setup Android Bridge Debug (ABD)](#setup-android-bridge-debug-abd)
+[Setup Android Bridge Debug (ABD)](#setup-android-bridge-debug-abd)
 
-[5 Download and Run the Source Code](#download-and-run-the-source-code)
+[Download and Run the Source Code](#download-and-run-the-source-code)
 
-[6 Connect and Setup the OpenBCI Dongle](#connect-and-setup-the-openbci-dongle)
+[Connect and Setup the OpenBCI Dongle](#connect-and-setup-the-openbci-dongle)
 
-[7 How to use the App](#how-to-use-the-app)
+[How to use the App](#how-to-use-the-app)
 
-[8 License]
+[License]
 
-[9 Contact]
+[Contact]
 
-[10 Acknowledgements]
+[Acknowledgements]
 
-1. Setup RabbitMQ Broker on AWS
+Setup RabbitMQ Broker on AWS
 ============================
 
 **Here are the steps you'll need to follow in order to setup and AWS EC2 RabbitMQ Broker**:
@@ -84,7 +84,7 @@ Log in to RabbitMQ
 
 The next sections will walk you through these steps in detail.
 
-1.1 Register with Amazon Web Services (AWS)
+Register with Amazon Web Services (AWS)
 ---------------------------------------
 
 You will need an Amazon account to log in and sign up. If you already
@@ -124,7 +124,7 @@ displayed on the screen. Once your identity is verified, choose the
 be redirected to a welcome page, which includes a link to the AWS
 management console.
 
-1.2 Generate an AWS Key Pair
+Generate an AWS Key Pair
 ------------------------
 
 You will have generated an SSH key pair to access your EC2 instances. If
@@ -156,7 +156,7 @@ computer.
 Store it safely as you will not be able to log in to your AWS servers
 without it.
 
-1.3 Create an AWS Security Group
+Create an AWS Security Group
 ----------------------------
 
 You will need to create an AWS security group for your cloud server. By
@@ -198,7 +198,7 @@ IP" and specify an IP address range.
 
 Click the "Create" button to save your changes.
 
-1.4 Deploy RabbitMQ on An AWS Cloud Server
+Deploy RabbitMQ on An AWS Cloud Server
 --------------------------------------
 
 The next step is to launch a cloud server with the Bitnami RabbitMQ
@@ -259,7 +259,7 @@ Dashboard to check the status of the server. Once the server has
 launched, you will be able to obtain its public IP address and public
 DNS name from the EC2 Dashboard.
 
-1.5 Log in to RabbitMQ Console
+Log in to RabbitMQ Console
 --------------------------
 
 To get the administrator username and password, follow these steps:
@@ -301,7 +301,7 @@ You should now be able to see your RabbitMQ Console
 
 ![](HowToDoc/media/image20.png)
 
-2. Create a RabbitMQ RECEIVE clients
+Create a RabbitMQ RECEIVE clients
 =================================
 
 Create the two RECEIVE clients -- one for EEG data and the second for
@@ -383,7 +383,7 @@ LOCATION\>\\json-simple-1.1.1.jar\" Recv2.java
 
 ![](HowToDoc/media/image21.jpg)
 
-3. Install Android Studio 
+Install Android Studio 
 ======================
 
 Download Android Studio for here: <https://developer.android.com/studio>
@@ -394,7 +394,7 @@ Once downloaded open the IDE
 
 ![](HowToDoc/media/image22.jpg)
 
-4. Setup Android Bridge Debug (ABD)
+Setup Android Bridge Debug (ABD)
 ================================
 
 The inbuilt Android emulator is unfortunately not very helpful for
@@ -463,7 +463,7 @@ reconnect by executing the adb connect step again or if that doesn\'t
 work, reset your adb host using: \'adb kill-server\'. Then start over
 from the beginning.
 
-5. Download and Run the Source Code
+Download and Run the Source Code
 ================================
 
 Download Source Code from GitHub here:
@@ -533,7 +533,7 @@ List dropdown in Android Studio.
 You should now be able to build and run the App and it will setup on
 your phone ready for use.
 
-6. Connect and Setup the OpenBCI Dongle
+Connect and Setup the OpenBCI Dongle
 ====================================
 
 Firstly, you will need to connect the OpenBCI Dongle to an OTG cable
@@ -560,7 +560,7 @@ You should see a single red flash on the dongle as the OpenBCI Board and Dongle 
 
 ![](HowToDoc/media/image31.jpg)
 
-7. How to use the App
+How to use the App
 ==================
 
 Open the App on you Android Mobile Devices and you should see the below
