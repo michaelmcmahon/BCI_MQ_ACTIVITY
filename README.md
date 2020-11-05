@@ -65,7 +65,7 @@ Main ToDo
 
 [Contact](#contact)
 
-[References] (#references)
+[References](#references)
 
 Setup RabbitMQ Broker on AWS
 ============================
