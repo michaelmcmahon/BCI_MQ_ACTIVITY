@@ -61,7 +61,7 @@ Main ToDo
 
 [How to use the App](#how-to-use-the-app)
 
-[License]
+[License](#license)
 
 [Contact]
 
@@ -616,3 +616,7 @@ ACTIVITY DATA STREAM
 
 ![](HowToDoc/media/image35.jpg)
 
+License
+==================
+
+Distributed under the MIT License. See LICENSE for more information.
