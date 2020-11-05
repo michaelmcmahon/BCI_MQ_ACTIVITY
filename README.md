@@ -37,35 +37,35 @@ Main ToDo
 
 # How to set up & run BCI MQ Activity Android App v1.0.0
 
-[Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
+* [Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
-[Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
+	* [Register with Amazon Web Services (AWS)](#register-with-amazon-web-services-aws)
 
-[Generate an AWS Key Pair](#generate-an-aws-key-pair)
+	* [Generate an AWS Key Pair](#generate-an-aws-key-pair)
 
-[Create an AWS Security Group](#create-an-aws-security-group)
+	* [Create an AWS Security Group](#create-an-aws-security-group)
 
-[Deploy RabbitMQ on An AWS Cloud Server](#deploy-rabbitmq-on-an-aws-cloud-server)
+	* [Deploy RabbitMQ on An AWS Cloud Server](#deploy-rabbitmq-on-an-aws-cloud-server)
 
-[Log in to RabbitMQ Console](#log-in-to-rabbitmq-console)
+	* [Log in to RabbitMQ Console](#log-in-to-rabbitmq-console)
 
-[Create a RabbitMQ RECEIVE clients](#create-a-rabbitmq-receive-clients)
+* [Create a RabbitMQ RECEIVE clients](#create-a-rabbitmq-receive-clients)
 
-[Install Android Studio](#install-android-studio)
+* [Install Android Studio](#install-android-studio)
 
-[Setup Android Bridge Debug (ABD)](#setup-android-bridge-debug-abd)
+* [Setup Android Bridge Debug (ABD)](#setup-android-bridge-debug-abd)
 
-[Download and Run the Source Code](#download-and-run-the-source-code)
+* [Download and Run the Source Code](#download-and-run-the-source-code)
 
-[Connect and Setup the OpenBCI Dongle](#connect-and-setup-the-openbci-dongle)
+* [Connect and Setup the OpenBCI Dongle](#connect-and-setup-the-openbci-dongle)
 
-[How to use the App](#how-to-use-the-app)
+* [How to use the App](#how-to-use-the-app)
 
-[License](#license)
+* [License](#license)
 
-[Contact](#contact)
+* [Contact](#contact)
 
-[References](#references)
+* [References](#references)
 
 Setup RabbitMQ Broker on AWS
 ============================
@@ -629,35 +629,35 @@ m.mcmahon15 @ nuigalway.ie
 References
 ==================
 
-ActivityRecognitionClient - Android
+* ActivityRecognitionClient - Android
 https://developers.google.com/android/reference/com/google/android/gms/location/ActivityRecognitionClient
 
-ABD - Android
+* ABD - Android
 https://developer.android.com/studio/command-line/adb.html#wireless
 
-Bitnami AWS RabbitMQ
+* Bitnami AWS RabbitMQ
 https://bitnami.com/stack/rabbitmq/cloud/aws/amis
 
-Braindroid - Florian Friemel
+* Braindroid - Florian Friemel
 https://github.com/florian-f/braindroid/blob/master/src/main/java/org/florian/eeg/braindroid/OpenBci.java
 
-Create your own AWS RabbitMQ Cluster, the dubizzle way - Ibrahim AbdelFattah
+* Create your own AWS RabbitMQ Cluster, the dubizzle way - Ibrahim AbdelFattah
 https://tech.olx.com/create-your-own-aws-rabbitmq-cluster-the-dubizzle-way-b4c632cb47d6
 
-Cyton Board SDK - OpenBCI
+* Cyton Board SDK - OpenBCI
 https://docs.openbci.com/docs/02Cyton/CytonSDK
 
-FTDI
+* FTDI
 https://www.ftdichip.com/Support/SoftwareExamples/Android_Projects.htm
 
-JSON messages with RabbitMQ - Pas Apicella 
+* JSON messages with RabbitMQ - Pas Apicella 
 http://theblasfrompas.blogspot.com/2013/02/json-messages-with-rabbitmq.html
 
-OpenBCI_Processing - Joel Murphy and Conor Russomanno
+* OpenBCI_Processing - Joel Murphy and Conor Russomanno
 https://github.com/openbci-archive/-DEPRECATED-OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
 
-How to recognize user activity with activity recognition - Paul Trebilcox-Ruiz
+* How to recognize user activity with activity recognition - Paul Trebilcox-Ruiz
 https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity-recognition--cms-25851
 
-RabbitMQ Android Chat - Karthikeyan NG
+* RabbitMQ Android Chat - Karthikeyan NG
 https://github.com/intrepidkarthi/RabbitMQ-Android-Chat
