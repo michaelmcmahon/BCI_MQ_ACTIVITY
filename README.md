@@ -629,35 +629,35 @@ m.mcmahon15 @ nuigalway.ie
 References
 ==================
 
-* ActivityRecognitionClient - Android
+1. ActivityRecognitionClient - Android
 https://developers.google.com/android/reference/com/google/android/gms/location/ActivityRecognitionClient
 
-* ABD - Android
+2. ABD - Android
 https://developer.android.com/studio/command-line/adb.html#wireless
 
-* Bitnami AWS RabbitMQ
+3. Bitnami AWS RabbitMQ
 https://bitnami.com/stack/rabbitmq/cloud/aws/amis
 
-* Braindroid - Florian Friemel
+4. Braindroid - Florian Friemel
 https://github.com/florian-f/braindroid/blob/master/src/main/java/org/florian/eeg/braindroid/OpenBci.java
 
-* Create your own AWS RabbitMQ Cluster, the dubizzle way - Ibrahim AbdelFattah
+5. Create your own AWS RabbitMQ Cluster, the dubizzle way - Ibrahim AbdelFattah
 https://tech.olx.com/create-your-own-aws-rabbitmq-cluster-the-dubizzle-way-b4c632cb47d6
 
-* Cyton Board SDK - OpenBCI
+6. Cyton Board SDK - OpenBCI
 https://docs.openbci.com/docs/02Cyton/CytonSDK
 
-* FTDI
+7. FTDI
 https://www.ftdichip.com/Support/SoftwareExamples/Android_Projects.htm
 
-* JSON messages with RabbitMQ - Pas Apicella 
+8. JSON messages with RabbitMQ - Pas Apicella 
 http://theblasfrompas.blogspot.com/2013/02/json-messages-with-rabbitmq.html
 
-* OpenBCI_Processing - Joel Murphy and Conor Russomanno
+9. OpenBCI_Processing - Joel Murphy and Conor Russomanno
 https://github.com/openbci-archive/-DEPRECATED-OpenBCI_Processing/blob/master/OpenBCI_GUI/OpenBCI_ADS1299.pde
 
-* How to recognize user activity with activity recognition - Paul Trebilcox-Ruiz
+10. How to recognize user activity with activity recognition - Paul Trebilcox-Ruiz
 https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity-recognition--cms-25851
 
-* RabbitMQ Android Chat - Karthikeyan NG
+11. RabbitMQ Android Chat - Karthikeyan NG
 https://github.com/intrepidkarthi/RabbitMQ-Android-Chat
