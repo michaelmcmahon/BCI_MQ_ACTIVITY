@@ -1,5 +1,6 @@
 # BCI_MQ_ACTIVITY_v1.0.0
 [![DOI](https://zenodo.org/badge/290618343.svg)](https://zenodo.org/badge/latestdoi/290618343)
+
 A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition.  
 
 Android 
