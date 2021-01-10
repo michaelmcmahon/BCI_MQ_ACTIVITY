@@ -78,54 +78,55 @@ public class ActivityRecognizedService extends IntentService {
                 String dateString = simpleDateFormat.format(calendar.getTime());
                 obj.put("TS", dateString); // Create a Timestamp
 
-                if (activity.getType() == DetectedActivity.IN_VEHICLE && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.IN_VEHICLE && activity.getConfidence() >= 1) {
                     obj.put("In Vehicle: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "In Vehicle: " + activity.getConfidence());
                 } else {
                     obj.put("In Vehicle:", 0);
                 }
-                if (activity.getType() == DetectedActivity.ON_BICYCLE && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.ON_BICYCLE && activity.getConfidence() >= 1) {
                     obj.put("On Bicycle: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "On Bicycle: " + activity.getConfidence());
                 } else {
                     obj.put("On Bicycle:", 0);
                 }
-                if (activity.getType() == DetectedActivity.ON_FOOT && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.ON_FOOT && activity.getConfidence() >= 1) {
                     obj.put("On Foot: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "On Foot: " + activity.getConfidence());
                 } else {
                     obj.put("On Foot:", 0);
                 }
-                if (activity.getType() == DetectedActivity.RUNNING && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.RUNNING && activity.getConfidence() >= 1) {
                     obj.put("Running: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "Running: " + activity.getConfidence());
                 } else {
                     obj.put("Running:", 0);
                 }
-                if (activity.getType() == DetectedActivity.STILL && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.STILL && activity.getConfidence() >= 1) {
                     obj.put("Still: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "Still: " + activity.getConfidence());
                 } else {
                     obj.put("Still:", 0);
                 }
-                if (activity.getType() == DetectedActivity.TILTING && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.TILTING && activity.getConfidence() >= 1) {
                     obj.put("Tilting: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "Tilting: " + activity.getConfidence());
                 } else {
                     obj.put("Tilting:", 0);
                 }
-                if (activity.getType() == DetectedActivity.WALKING && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.WALKING && activity.getConfidence() >= 1) {
                     obj.put("Walking: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "Walking: " + activity.getConfidence());
                 } else {
                     obj.put("Walking:", 0);
                 }
-                if (activity.getType() == DetectedActivity.UNKNOWN && activity.getConfidence() >= 0) {
+                if (activity.getType() == DetectedActivity.UNKNOWN && activity.getConfidence() >= 1) {
                     obj.put("Unknown: ", +activity.getConfidence());
                     Log.e("ActivityRecognition", "Unknown: " + activity.getConfidence());
                 } else {
                     obj.put("Unknown:", 0);
                 }
+
                 channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
             }
         } catch (TimeoutException e) {
