@@ -12,6 +12,10 @@ import com.rabbitmq.client.ConnectionFactory;
 
 import org.json.simple.JSONObject;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import org.json.simple.JSONValue;
+
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -49,6 +53,23 @@ public class ActivityRecognizedService extends IntentService {
         }
     }
 
+    /* Create RabbitMQ connection to Broker */
+    private Connection getConnection() throws IOException, TimeoutException {
+        ConnectionFactory factory;
+        factory = RabbitmqConnection.getConnectionFactory();
+        return factory.newConnection();
+    }
+
+    /* Create RabbitMQ Channel on Broker */
+    private Channel getChannel(Connection connection) throws IOException {
+        return connection.createChannel();
+    }
+
+    /* Declare the RabbitMQ Queue on Broker */
+    private void declareQueue(Channel channel) throws IOException {
+        channel.queueDeclare("activity", false, false, false, null);
+    }
+
     /*
     Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
     collections internally - need to change to a library which supports generics to be more type safe.
@@ -63,17 +84,17 @@ public class ActivityRecognizedService extends IntentService {
     private void handleDetectedActivities(List<DetectedActivity> probableActivities) {
 
         try {
+            /* Placed RabbitMQ connection, channel, queue into their own Methods */
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
-            ConnectionFactory factory;
-            factory = RabbitmqConnection.getConnectionFactory();
-            Connection connection = factory.newConnection();
-            Channel channel = connection.createChannel();
-            channel.queueDeclare(QUEUE_NAME, false, false, false, null);
+            Connection connection = getConnection();
+            Channel channel = getChannel(connection);
+            declareQueue(channel);
 
             Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
             for (DetectedActivity activity : probableActivities) {
-                JSONObject obj = new JSONObject();
+                /*Encode a JSON object using Map so order of the object entries is preserved*/
+                Map obj=new LinkedHashMap();
                 /* Create a new String using the date-time format */
                 String dateString = simpleDateFormat.format(calendar.getTime());
                 obj.put("TS", dateString); // Create a Timestamp
@@ -126,8 +147,7 @@ public class ActivityRecognizedService extends IntentService {
                 } else {
                     obj.put("Unknown:", 0);
                 }
-
-                channel.basicPublish("", QUEUE_NAME, null, obj.toJSONString().getBytes());
+                channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes("UTF-8"));
             }
         } catch (TimeoutException e) {
             e.printStackTrace();

@@ -121,11 +121,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED); //custom action intent targeting mBroadCastReceiver
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_DETACHED); //custom action intent targeting mBroadCastReceiver
         launchOpenBciService(); //Launch the Bci Service
-    /*
-    Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
-    we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
-    and associating our listeners with the GoogleApiClient instance.
-     */
+
+        /*
+        Activity Recognition Setup - After implementing the required interfaces for the GoogleApiClient above,
+        we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
+        and associating our listeners with the GoogleApiClient instance.
+         */
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
