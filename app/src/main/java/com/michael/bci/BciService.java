@@ -61,7 +61,6 @@ public class BciService extends Service {
 
     public volatile boolean receiverThreadRunning;
 
-
     /* Define the Custom Action Intents for BroadcastReceiver */
     final static String DATA_RECEIVED_INTENT = "bci.intent.action.DATA_RECEIVED";
     final static String DATA_EXTRA = "bci.intent.extra.DATA";
@@ -136,7 +135,7 @@ public class BciService extends Service {
         }
 
         /* connect */
-        if (null == ftDevice || !ftDevice.isOpen())
+        if (ftDevice == null || !ftDevice.isOpen())
         {
             ftDevice = ftD2xx.openByUsbDevice(this, mUsbDevice);
             Log.e(TAG, "USB: Connect to ftDevice");
@@ -153,7 +152,7 @@ public class BciService extends Service {
         ftDevice.setBitMode((byte) 0, D2xxManager.FT_BITMODE_RESET); /* Reset FT Device */
         ftDevice.setBaudRate(BAUD_RATE); /* Set BaudRate */
         /* The default FTDI 16 latency may be too large for EEG apps, making the incoming signal "choppy", May change from 16ms to 1ms */
-        ftDevice.setLatencyTimer((byte) 16);
+        ftDevice.setLatencyTimer((byte) 1);
 
         /* FTDI USB configured as serial port running at 115200 baud using typical 8-N-1. */
 
@@ -221,6 +220,7 @@ public class BciService extends Service {
             }
 
             if  (Objects.equals(intent.getAction(), SEND_COMMAND)){
+
                 final String dataToSend = intent.getStringExtra(COMMAND_EXTRA);
                 if (dataToSend == null) {
                     Log.i(TAG, "No " + DATA_EXTRA + " extra in intent!");
