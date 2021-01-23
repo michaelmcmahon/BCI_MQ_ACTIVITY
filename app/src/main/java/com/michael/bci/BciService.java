@@ -51,7 +51,7 @@ public class BciService extends Service {
 
     public static final long SLEEP = 200;
     public static final int VENDOR_ID = 1027;
-    public static final int BAUD_RATE = 115200;
+    public static final int BAUD_RATE = 115200; //9600
 
     byte mStopBit = D2xxManager.FT_STOP_BITS_1;
     byte mDataBit = D2xxManager.FT_DATA_BITS_8;
@@ -275,6 +275,7 @@ public class BciService extends Service {
             }
             ftDevice = null;
         }
+
         unregisterReceiver(mReceiver);
         stopForeground(true);
         Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
