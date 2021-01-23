@@ -53,12 +53,13 @@ public class ActivityRecognizedService extends IntentService {
         }
     }
 
-    /* Create RabbitMQ connection to Broker */
+    /* Create RabbitMQ connection to Broker
     private Connection getConnection() throws IOException, TimeoutException {
         ConnectionFactory factory;
         factory = RabbitmqConnection.getConnectionFactory();
         return factory.newConnection();
     }
+    */
 
     /* Create RabbitMQ Channel on Broker */
     private Channel getChannel(Connection connection) throws IOException {
@@ -86,8 +87,8 @@ public class ActivityRecognizedService extends IntentService {
         try {
             /* Placed RabbitMQ connection, channel, queue into their own Methods */
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
-            Connection connection = getConnection();
-            Channel channel = getChannel(connection);
+            //Connection connection = getConnection();
+            Channel channel = getChannel(RabbitmqConnection.getConnectionFactory());
             declareQueue(channel);
 
             Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
