@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import org.json.simple.JSONValue;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.concurrent.TimeoutException;
 
 
 /* BciReceiver class groups methods for receiving data from the OpenBCI Board
@@ -34,6 +36,8 @@ public class BciReceiver {
 
     /* Ensure startReceiverThread block is synchronized on "private final" field */
     private final Object lockObj = new Object();
+    private Connection connection;
+    private Channel channel_1;
 
     /* Method to create thread which will receive and process data from the OpenBCI Cyton Board */
     void startReceiverThread(BciService bciService) {
@@ -79,16 +83,82 @@ public class BciReceiver {
         factory = RabbitmqConnection.getConnectionFactory();
         return factory.newConnection();
     }
+     */
 
-    /* Create RabbitMQ Channel on Broker */
+    /* Create RabbitMQ Channel on Broker
     private Channel getChannel(Connection connection) throws IOException {
         return connection.createChannel();
     }
+     */
 
-
-    /* Declare the RabbitMQ Queue on Broker */
+    /* Declare the RabbitMQ Queue on Broker
     private void declareQueue(Channel channel) throws IOException {
         channel.queueDeclare("bci_data", false, false, false, null);
+    }
+     */
+    /* Create RabbitMQ Connection to the Broker */
+    private Connection getConnection() throws IOException, TimeoutException {
+        // Only create the connection if it doesn't already exist
+        if (connection == null)
+        {
+            try
+            {
+                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
+                connection =  factory.newConnection();
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (connection != null)
+                {
+                    connection.close();
+                    connection = null;
+                }
+                throw e;
+            }
+        }
+        return connection;
+    }
+
+    /* Create RabbitMQ Channel on Broker */
+    private Channel getChannel() throws IOException, TimeoutException {
+        // Only create the channel if it doesn't already exist
+        if (channel_1 == null)
+        {
+            try
+            {
+                channel_1 = getConnection().createChannel();
+                channel_1.queueDeclare("bci_data", false, false, false, null);
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (channel_1 != null)
+                {
+                    channel_1.close();
+                    channel_1 = null;
+                }
+
+                throw e;
+            }
+        }
+
+        return channel_1;
+    }
+
+    // Cleanup the channel and leave it in an uninitialized state
+    private void CloseChannel() throws IOException, TimeoutException {
+        if (channel_1 != null)
+        {
+            channel_1.close();
+            channel_1 = null;
+        }
+
+        if (connection != null)
+        {
+            connection.close();
+            connection = null;
+        }
     }
 
     /* ReadQueue Method reads data from the ftDevice device queue
@@ -125,8 +195,7 @@ public class BciReceiver {
                 String QUEUE_NAME = "bci_data"; //RabbitMQ Queue Name
 
                 //Connection connection = getConnection();
-                Channel channel = getChannel(RabbitmqConnection.getConnectionFactory());
-                declareQueue(channel);
+                Channel channel = getChannel();
 
 
                 if (readData[0] != START_BYTE) {
@@ -184,10 +253,16 @@ public class BciReceiver {
                             }
                         }
                     }
-                channel.close();
-                RabbitmqConnection.getConnectionFactory().close();
             } catch (Exception e) {
                 e.printStackTrace();
+                // If we hit any issues, close the RabbitMQ channel, so that it is re-created on the next read.
+                try {
+                    CloseChannel();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                } catch (TimeoutException timeoutException) {
+                    timeoutException.printStackTrace();
+                }
             }
 
             //END LOOP HERE

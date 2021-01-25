@@ -31,6 +31,9 @@ REFERENCE
 https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity-recognition--cms-25851
  */
 public class ActivityRecognizedService extends IntentService {
+    private Connection connection;
+    private Channel channel_2;
+
 
     public ActivityRecognizedService() {
         super("ActivityRecognizedService");
@@ -61,14 +64,80 @@ public class ActivityRecognizedService extends IntentService {
     }
     */
 
-    /* Create RabbitMQ Channel on Broker */
+    /* Create RabbitMQ Channel on Broker
     private Channel getChannel(Connection connection) throws IOException {
         return connection.createChannel();
     }
+    */
 
-    /* Declare the RabbitMQ Queue on Broker */
+    /* Declare the RabbitMQ Queue on Broker
     private void declareQueue(Channel channel) throws IOException {
         channel.queueDeclare("activity", false, false, false, null);
+    }
+     */
+    /* Create RabbitMQ Connection to the Broker */
+    private Connection getConnection() throws IOException, TimeoutException {
+        // Only create the connection if it doesn't already exist
+        if (connection == null)
+        {
+            try
+            {
+                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
+                connection =  factory.newConnection();
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (connection != null)
+                {
+                    connection.close();
+                    connection = null;
+                }
+                throw e;
+            }
+        }
+        return connection;
+    }
+
+    /* Create RabbitMQ Channel on Broker */
+    private Channel getChannel() throws IOException, TimeoutException {
+        // Only create the channel if it doesn't already exist
+        if (channel_2 == null)
+        {
+            try
+            {
+                channel_2 = getConnection().createChannel();
+                channel_2.queueDeclare("activity", false, false, false, null);
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (channel_2 != null)
+                {
+                    channel_2.close();
+                    channel_2 = null;
+                }
+
+                throw e;
+            }
+        }
+
+        return channel_2;
+    }
+
+    // Cleanup the channel and leave it in an uninitialized state
+    private void CloseChannel() throws IOException, TimeoutException {
+        if (channel_2 != null)
+        {
+            channel_2.close();
+            channel_2 = null;
+        }
+
+        if (connection != null)
+        {
+            connection.close();
+            connection = null;
+        }
     }
 
     /*
@@ -87,9 +156,9 @@ public class ActivityRecognizedService extends IntentService {
         try {
             /* Placed RabbitMQ connection, channel, queue into their own Methods */
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
+
             //Connection connection = getConnection();
-            Channel channel = getChannel(RabbitmqConnection.getConnectionFactory());
-            declareQueue(channel);
+            Channel channel = getChannel();;
 
             Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
