@@ -22,8 +22,14 @@ import androidx.core.app.NotificationCompat;
 
 import com.ftdi.j2xx.D2xxManager; //management class for connected FTDI devices.
 import com.ftdi.j2xx.FT_Device; // provides APIs for the host to communicate and operate FTDI devices
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 
+import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
+
+import static com.michael.bci.RabbitmqConnection.CloseConnection;
 
 /*
  * Michael McMahon
@@ -66,7 +72,6 @@ public class BciService extends Service {
     final static String DATA_EXTRA = "bci.intent.extra.DATA";
     final static String SEND_COMMAND = "bci.intent.action.SEND_COMMAND";
     final static String COMMAND_EXTRA = "bci.intent.extra.COMMAND_EXTRA";
-
 
     public D2xxManager.DriverParameters mDriverParameters;
 
@@ -197,6 +202,8 @@ public class BciService extends Service {
         /* Start the receiver thread to get data from OpenBCI Board */
         new BciReceiver().startReceiverThread(this);
 
+        //Here
+
 //        return Service.START_REDELIVER_INTENT;
         return Service.START_STICKY;
     }
@@ -274,6 +281,13 @@ public class BciService extends Service {
                 Log.e(TAG, "failed to close device", e);
             }
             ftDevice = null;
+        }
+
+        try {
+            CloseConnection();
+            Log.d(TAG, "RMQ: Close Connection onDestroy");
+        } catch (IOException | TimeoutException e) {
+            e.printStackTrace();
         }
 
         unregisterReceiver(mReceiver);

@@ -12,6 +12,7 @@ import com.rabbitmq.client.ConnectionFactory;
 
 import org.json.simple.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.json.simple.JSONValue;
@@ -33,6 +34,7 @@ https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity
 public class ActivityRecognizedService extends IntentService {
     private Connection connection;
     private Channel channel_2;
+    public final static String TAG = "ActivityRec";
 
 
     public ActivityRecognizedService() {
@@ -56,49 +58,6 @@ public class ActivityRecognizedService extends IntentService {
         }
     }
 
-    /* Create RabbitMQ connection to Broker
-    private Connection getConnection() throws IOException, TimeoutException {
-        ConnectionFactory factory;
-        factory = RabbitmqConnection.getConnectionFactory();
-        return factory.newConnection();
-    }
-    */
-
-    /* Create RabbitMQ Channel on Broker
-    private Channel getChannel(Connection connection) throws IOException {
-        return connection.createChannel();
-    }
-    */
-
-    /* Declare the RabbitMQ Queue on Broker
-    private void declareQueue(Channel channel) throws IOException {
-        channel.queueDeclare("activity", false, false, false, null);
-    }
-     */
-    /* Create RabbitMQ Connection to the Broker */
-    private Connection getConnection() throws IOException, TimeoutException {
-        // Only create the connection if it doesn't already exist
-        if (connection == null)
-        {
-            try
-            {
-                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
-                connection =  factory.newConnection();
-            }
-            catch(Exception e)
-            {
-                // Clean up
-                if (connection != null)
-                {
-                    connection.close();
-                    connection = null;
-                }
-                throw e;
-            }
-        }
-        return connection;
-    }
-
     /* Create RabbitMQ Channel on Broker */
     private Channel getChannel() throws IOException, TimeoutException {
         // Only create the channel if it doesn't already exist
@@ -106,7 +65,7 @@ public class ActivityRecognizedService extends IntentService {
         {
             try
             {
-                channel_2 = getConnection().createChannel();
+                channel_2 = RabbitmqConnection.getConnection().createChannel();
                 channel_2.queueDeclare("activity", false, false, false, null);
             }
             catch(Exception e)
@@ -121,7 +80,7 @@ public class ActivityRecognizedService extends IntentService {
                 throw e;
             }
         }
-
+        Log.d(TAG, "RMQ: Open Channel 2 for Activity" + channel_2);
         return channel_2;
     }
 
@@ -131,12 +90,14 @@ public class ActivityRecognizedService extends IntentService {
         {
             channel_2.close();
             channel_2 = null;
+            Log.d(TAG, "RMQ: Close Channel 2 for Activity" + channel_2);
         }
 
         if (connection != null)
         {
             connection.close();
             connection = null;
+            Log.d(TAG, "RMQ: Close Connection for Activity" + connection);
         }
     }
 
@@ -158,7 +119,8 @@ public class ActivityRecognizedService extends IntentService {
             String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
 
             //Connection connection = getConnection();
-            Channel channel = getChannel();;
+            Channel channel = getChannel();
+            Log.d(TAG, "RMQ: Connection/Channel 2 for EEG" +channel);
 
             Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
@@ -217,12 +179,21 @@ public class ActivityRecognizedService extends IntentService {
                 } else {
                     obj.put("Unknown:", 0);
                 }
-                channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes("UTF-8"));
+                channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
+
+                /* For now lets just close connection every time */
+                //RabbitmqConnection.CloseConnection();
+                CloseChannel();
             }
-        } catch (TimeoutException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            // If we hit any issues, close the RabbitMQ channel, so that it is re-created on the next read.
+            try {
+                CloseChannel();
+                Log.d(TAG, "RMQ: Close Loop Channel for Activity");
+            } catch (IOException | TimeoutException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 }

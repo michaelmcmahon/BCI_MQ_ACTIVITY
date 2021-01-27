@@ -76,50 +76,6 @@ public class BciReceiver {
         }.start();
     }
 
-
-    /* Create RabbitMQ connection to Broker
-    private Connection getConnection() throws IOException, TimeoutException {
-        ConnectionFactory factory;
-        factory = RabbitmqConnection.getConnectionFactory();
-        return factory.newConnection();
-    }
-     */
-
-    /* Create RabbitMQ Channel on Broker
-    private Channel getChannel(Connection connection) throws IOException {
-        return connection.createChannel();
-    }
-     */
-
-    /* Declare the RabbitMQ Queue on Broker
-    private void declareQueue(Channel channel) throws IOException {
-        channel.queueDeclare("bci_data", false, false, false, null);
-    }
-     */
-    /* Create RabbitMQ Connection to the Broker */
-    private Connection getConnection() throws IOException, TimeoutException {
-        // Only create the connection if it doesn't already exist
-        if (connection == null)
-        {
-            try
-            {
-                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
-                connection =  factory.newConnection();
-            }
-            catch(Exception e)
-            {
-                // Clean up
-                if (connection != null)
-                {
-                    connection.close();
-                    connection = null;
-                }
-                throw e;
-            }
-        }
-        return connection;
-    }
-
     /* Create RabbitMQ Channel on Broker */
     private Channel getChannel() throws IOException, TimeoutException {
         // Only create the channel if it doesn't already exist
@@ -127,7 +83,7 @@ public class BciReceiver {
         {
             try
             {
-                channel_1 = getConnection().createChannel();
+                channel_1 = RabbitmqConnection.getConnection().createChannel();
                 channel_1.queueDeclare("bci_data", false, false, false, null);
             }
             catch(Exception e)
@@ -142,7 +98,7 @@ public class BciReceiver {
                 throw e;
             }
         }
-
+        Log.d(TAG, "RMQ: Open Channel 1 for EEG" +channel_1);
         return channel_1;
     }
 
@@ -152,12 +108,7 @@ public class BciReceiver {
         {
             channel_1.close();
             channel_1 = null;
-        }
-
-        if (connection != null)
-        {
-            connection.close();
-            connection = null;
+            Log.d(TAG, "RMQ: Close Channel 1 for EEG");
         }
     }
 
@@ -196,6 +147,7 @@ public class BciReceiver {
 
                 //Connection connection = getConnection();
                 Channel channel = getChannel();
+                Log.d(TAG, "RMQ: Connection/Channel 1 for EEG" +channel);
 
 
                 if (readData[0] != START_BYTE) {
@@ -257,24 +209,17 @@ public class BciReceiver {
                 e.printStackTrace();
                 // If we hit any issues, close the RabbitMQ channel, so that it is re-created on the next read.
                 try {
+                    //RabbitmqConnection.CloseConnection();
                     CloseChannel();
-                } catch (IOException ioException) {
+                    Log.d(TAG, "RMQ: Close Loop Channel for EEG");
+                } catch (IOException | TimeoutException ioException) {
                     ioException.printStackTrace();
-                } catch (TimeoutException timeoutException) {
-                    timeoutException.printStackTrace();
                 }
             }
 
             //END LOOP HERE
         }
     }
-
-
-    /*
-    Suppress due to an unchecked 'put(K,V)' warning because org.json.simple.JSONObject uses raw type
-    collections internally - need to change to a library which supports generics to be more type safe.
-     */
-    @SuppressWarnings(value = "unchecked")
 
     /* BCI EEG Data JSON construction */
     private static LinkedHashMap<String, Serializable> jsonBciConstructor(byte[] readData, int i)
