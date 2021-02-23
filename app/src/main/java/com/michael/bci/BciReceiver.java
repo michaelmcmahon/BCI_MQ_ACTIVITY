@@ -25,8 +25,8 @@ public class BciReceiver {
 
     public final static String TAG = "BCI_RECEIVER";
     /* Set the data transfer size */
-    public static final int TRANSFER_SIZE = 528; //528 | 512 | 1024 | 256
-    /* One byte header 0x41 then 31 bytes of data followed by 0xCX where X is 0-F in hex */
+    public static final int TRANSFER_SIZE = 528; //528 = 33 x 16
+    /* One byte header 0x41 then 31 bytes of data followed by where X is 0-F in hex */
     public static final byte readData_SIZE = (byte)33;
     /* Header and Footer Bytes for each packet */
     final static byte START_BYTE = (byte)0xA0;
@@ -50,12 +50,12 @@ public class BciReceiver {
                 //Create BCIReceiver Object Instance
                 BciReceiver BciReceiverMain = new BciReceiver();
 
-                byte[] readData = new byte[TRANSFER_SIZE];
+               byte[] readData = new byte[TRANSFER_SIZE];
 
                 while (bciService.receiverThreadRunning) {
 
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         // Say something?
                     }
@@ -63,6 +63,7 @@ public class BciReceiver {
                     synchronized (lockObj) {
                         /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
                         int bytesAvailable = bciService.ftDevice.getQueueStatus();
+                        //Log.d(TAG, "bytesAvailable 1 " + bytesAvailable);
 
                         /* If bytes available then pass the bytes available info to the ReadQueue Method */
                         if (bytesAvailable > 0) {
@@ -116,7 +117,9 @@ public class BciReceiver {
      * Connects to the RabbitMQ broker and loops through the data */
     public void ReadQueue(byte[] readData, int bytesAvailable, BciService bciService) {
         /* Ensure bytes available are not greater than TRANSFER_SIZE */
-        if (bytesAvailable > 0) {
+        if (bytesAvailable > 0)
+            //Log.d(TAG, "bytesAvailable 2 " + bytesAvailable);
+        {
             if (bytesAvailable > TRANSFER_SIZE) {
                 bytesAvailable = TRANSFER_SIZE;
             }
@@ -124,18 +127,19 @@ public class BciReceiver {
 
             /*
             Read bytes from device.
-            A call to read(byte[], int) requesting up to available bytes will return with
+            A call to read(byte[] data, int length) requesting up to available bytes will return with
             the data immediately (negative number for error)
             @param readData = Bytes array to store read bytes
             @param length = Amount of bytes to read
              */
             bciService.ftDevice.read(readData, bytesAvailable);
+            Log.d(TAG, "readData_SIZE " + readData_SIZE);
 
             Log.w(TAG, "PROCESS_DATA 1d - Broadcast Intent:" + Arrays.toString(readData));
             if (bytesAvailable % readData_SIZE == 0 && readData[0] == START_BYTE) {
-                Log.d(TAG, "received data (" + bytesAvailable + " bytes (" + ((float) bytesAvailable/ readData_SIZE));
+                Log.d(TAG, "received data " + bytesAvailable + " bytes " + ((float)bytesAvailable/ readData_SIZE));
             } else {
-                Log.d(TAG, "received data (" + bytesAvailable + " bytes ("+((float)bytesAvailable / readData_SIZE)+", but readData size/start byte (" + readData[0] + ") is incorrect");
+                Log.d(TAG, "received data " + bytesAvailable + " bytes ("+((float)bytesAvailable / readData_SIZE)+"), but readData size/start byte (" + readData[0] + ") is incorrect");
             }
 
             //Work we want completed
@@ -152,9 +156,9 @@ public class BciReceiver {
 
                 if (readData[0] != START_BYTE) {
                     if (remainingBytes != null) {
-                        byte[] dataTmp = new byte[remainingBytes.length + readData.length];
+                        byte[] dataTmp = new byte[remainingBytes.length + (readData.length - 1)];
                         System.arraycopy(remainingBytes, 0, dataTmp, 0, remainingBytes.length);
-                        System.arraycopy(readData, 0, dataTmp, remainingBytes.length, readData.length);
+                        System.arraycopy(readData, 0, dataTmp, remainingBytes.length, readData.length -1);
                         remainingBytes = null;
                         readData = dataTmp;
                     }
@@ -163,7 +167,7 @@ public class BciReceiver {
                 /* Synchronise - Add a pre-loop to scan data stream based on START_BYTE locations */
                 int iStart = 0;
                 boolean found_start_byte = false;
-                for (; iStart < readData.length; iStart++) {
+                for (; iStart < readData.length -1; iStart++) {
                     if (readData[iStart] == START_BYTE && readData[iStart + 33] == START_BYTE && readData[iStart + 66] == START_BYTE) {
                         found_start_byte = true;
                         break;
@@ -177,15 +181,17 @@ public class BciReceiver {
                 }
 
 
+                Log.w(TAG, "Start Byte" + found_start_byte );
                 if (found_start_byte) {
-                    for (int i = 0; i < readData.length; i++) {
-                            if (readData.length > i + 32 && readData[i + 33] == START_BYTE && readData[i + 32] == END_BYTE) {
+                    for (int i = 0; i < readData.length - 1; i++) {
+                            if (readData.length -1 > i + 32 && readData[i + 33] == START_BYTE && readData[i + 32] == END_BYTE) {
                                 Log.w(TAG, "PROCESS_DATA 5:" + readData.length + "|" + i);
 
 
                             /*Encode a JSON object using LinkedHashMap so order of the entries is preserved
                             and moved JSON construction is in its own object */
                                 LinkedHashMap<String, Serializable> obj = BciReceiver.jsonBciConstructor(readData, i);
+
 
                                 i = i + 32;
 
@@ -195,11 +201,11 @@ public class BciReceiver {
                                 channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
                                 Log.w(TAG, "PROCESS_DATA_JSON: Loop" + JSONValue.toJSONString(obj) );
                             } else {
-                                if (readData.length < TRANSFER_SIZE) {
-                                    if (readData.length % readData_SIZE != 0) {
-                                        remainingBytes = Arrays.copyOfRange(readData, i, readData.length - 1);
-                                        Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
-                                        Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
+                                if (readData.length - 1 < TRANSFER_SIZE) {
+                                    if (readData.length -1 % readData_SIZE != 0) {
+                                        remainingBytes = Arrays.copyOfRange(readData, i, (readData.length - 1));
+                                        //Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
+                                        //Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
                                     }
                                 }
                             }
@@ -227,8 +233,9 @@ public class BciReceiver {
         LinkedHashMap<String, java.io.Serializable> obj = new LinkedHashMap<>();
 
         Calendar calendar = Calendar.getInstance(); //Get calendar using current time zone and locale of the system.
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss-SSS"); //format and parse date-time
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS"); //format and parse date-time
         String dateString = simpleDateFormat.format(calendar.getTime()); //Create a new String using the date-time format
+        long unixTime = System.currentTimeMillis() / 1000L;
 
         /* Check header file */
         obj.put("Header", readData[i]); //readData[i + 2] & 0xFF
@@ -262,16 +269,29 @@ public class BciReceiver {
         obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26)));
         //Bytes 27-28: Data value for accelerometer channel X AY1-AY0
         //float accelX = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 26, i + 28));
-        obj.put("accelX", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 26, i + 28)));
+        obj.put("accelX", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 26, i + 28)));
         //Bytes 29-30: Data value for accelerometer channel Y AY1-AY0
         //float accelY = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 28, i + 30));
-        obj.put("accelY", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 28, i + 30)));
+        obj.put("accelY", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 28, i + 30)));
         //Bytes 31-32: Data value for accelerometer channel Z AZ1-AZ0
         //float accelZ = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 30, i + 32));
-        obj.put("accelZ", (float) OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 30, i + 32)));
-        obj.put("Footer", readData[i + 32]); // Create a Timestamp
+        obj.put("accelZ", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 30, i + 32)));
         /* Confirm footer */
-        obj.put("TS", dateString); // Create a Timestamp
+        /*Start fields needed for OpenBCI GUI - just using 0.0*/
+        obj.put("other1", 0.0);
+        obj.put("other2", 0.0);
+        obj.put("other3", 0.0);
+        obj.put("other4", 0.0);
+        obj.put("other5", 0.0);
+        obj.put("other6", 0.0);
+        obj.put("other7", 0.0);
+        obj.put("analog1", 0.0);
+        obj.put("analog2", 0.0);
+        obj.put("analog3", 0.0);
+        obj.put("UnixTS", unixTime); // Create a Unix Timestamp
+        /*End fields needed for OpenBCI GUI - just using 0.0*/
+        obj.put("TS", dateString); // Create a Formatted Timestamp
+        obj.put("Footer", readData[i + 32]); // Create a Timestamp
         return obj;
     }
 }

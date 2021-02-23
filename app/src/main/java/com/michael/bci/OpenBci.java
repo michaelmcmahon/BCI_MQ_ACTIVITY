@@ -17,8 +17,17 @@ class OpenBci {
     /*
     Scale factor converts the EEG values from “counts” (int32 number) into scientific units (volts).
     The equation for determining the scale factor is: Scale Factor (Volts/count) = 4.5 Volts / gain / (2^23 - 1);
+    ADS1299 datasheet Table 7, confirmed through experiment
      */
-    private static final float scale_fac_uVolts_per_count = ADS1299_Vref / ((float)(Math.pow(2,23)-1)) / ADS1299_gain  * 1000000.f; //ADS1299 datasheet Table 7, confirmed through experiment
+    private static final float scale_fac_uVolts_per_count = ADS1299_Vref / ((float)(Math.pow(2,23)-1)) / ADS1299_gain  * 1000000.f;
+    /*
+    Accelerometer data must also be scaled before it can be correctly interpreted.  The equation used to
+    scale Accelerometer data is as follows (We assume 4Gs, so 2mG per digit)
+    assume set to +/4G, so 2 mG per digit (datasheet). Account for 4 bits unused
+     */
+    public static final float scale_fac_accel_G_per_count = 0.002f / ((float)Math.pow(2,4));
+
+
 
 
     /*
@@ -58,10 +67,14 @@ class OpenBci {
         return newInt;
     }
 
-    /* Apply the scale factor to the "counts" */
+    /* Apply the scale factor to the EEG "counts" */
     public static float convertByteToMicroVolts(byte[] byteArray){
         return scale_fac_uVolts_per_count * interpret24bitAsInt32(byteArray);
+    }
 
+    /* Apply the scale factor to the EEG "counts" */
+    public static float convertAccelData(byte[] byteArray){
+        return scale_fac_accel_G_per_count * interpret16bitAsInt32(byteArray);
     }
 
 }
