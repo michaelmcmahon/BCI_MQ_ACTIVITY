@@ -6,6 +6,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import com.ftdi.j2xx.D2xxManager;
+
 import java.util.Arrays;
 
 public class BciSender {
@@ -50,8 +52,8 @@ public class BciSender {
     /* Send the actual OpenBCI command via FTDI to USB Dongle */
     void SendMessage(String writeData, BciService bciService) {
         /* The default FTDI latency is too large for EEG apps, making the incoming signal "choppy", Change from 16ms to 1ms */
-        bciService.ftDevice.setLatencyTimer((byte) 1);
-//        ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX)); //MAY NEED THIS
+        bciService.ftDevice.setLatencyTimer((byte) 16);
+        bciService.ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX)); //MAY NEED THIS
 //        String writeData = "v";//writeText.getText().toString(); //MAY NEED THIS
         byte[] OutData = writeData.getBytes();
         Log.w("PROCESS_DATA:", "OutData 0:" + Arrays.toString(OutData));
