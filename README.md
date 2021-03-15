@@ -572,21 +572,18 @@ screen.
 
 **TEST SIGNAL:** The Test Signal checkbox turns on all the available
 channels and connects them to an internal test signal. This feature is
-very useful for self-test and calibration. By default, this is set to a
-test signal 1xAmplitude, slow pulse however you can edit this setting in
-the MainActivity Class and use any of the below settings.
+very useful for self-test and calibration. 
 
-0 Connect to internal GND (VDD - VSS)
+x(CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET)X
 
-\- Connect to test signal 1xAmplitude, slow pulse
-
-= Connect to test signal 1xAmplitude, fast pulse
-
-p Connect to DC signal
-
-\[ Connect to test signal 2xAmplitude, slow pulse
-
-\] Connect to test signal 2xAmplitude, fast pulse
+x1065110X
+x2065110X
+x3065110X
+x4065110X
+x5065110X
+x6065110X
+x7065110X
+x8065110X
 
 For normal usage with incoming OpenBCI EEG signals just leave this box
 unchecked
