@@ -56,7 +56,7 @@ public class BciSender {
         bciService.ftDevice.purge((byte) (D2xxManager.FT_PURGE_TX | D2xxManager.FT_PURGE_RX)); //MAY NEED THIS
 //        String writeData = "v";//writeText.getText().toString(); //MAY NEED THIS
         byte[] OutData = writeData.getBytes();
-        Log.w("PROCESS_DATA:", "OutData 0:" + Arrays.toString(OutData));
+        Log.w("PROCESS_DATA:", "OutData 0:" +OutData);
         Log.w("PROCESS_DATA:", "OutData 1:" + Arrays.toString(OutData));
         bciService.ftDevice.write(OutData, writeData.length());
 
