@@ -20,10 +20,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityRecognitionClient;
+import com.google.android.gms.tasks.Task;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import static com.google.android.gms.common.api.GoogleApiClient.*;
 
 /*
 Michael McMahon
@@ -33,7 +37,7 @@ lifecycle such as onCreate(), onStart(), onResume(), onPause(), onStop(), onRest
 We need to implement the ConnectionCallbacks and OnConnectionFailedListener interfaces to connect to
 use Google Play Services for Activity Detection.
 */
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements ConnectionCallbacks, OnConnectionFailedListener {
 
     final static private String TAG = "BCI_MAIN";
 
@@ -77,10 +81,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 /* x (CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET) X
                 x1065110Xx2065110Xx3065110Xx4065110Xx5065110Xx6065110Xx7065110Xx8065110X
                 Set A for write to SD Card*/
-                cmd = "x1065110Xx2065110Xx3065110Xx4065110Xx5065110Xx6065110Xx7065110Xx8065110X";
+                cmd = "x1060110Xx2060110Xx3060110Xx4100000Xx5100000Xx6100000Xx7100000Xx8100000X";
             } else {
                 /* Send 'd' to set all channels to default */
-                cmd = "d";
+                cmd = "x1060110Xx2060110Xx3060110Xx4100000Xx5100000Xx6100000Xx7100000Xx8100000X";
             }
             Log.e(TAG, "Send Command - " + cmd);
             Intent intent = new Intent(BciService.SEND_COMMAND);
@@ -129,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
         and associating our listeners with the GoogleApiClient instance.
          */
-        mApiClient = new GoogleApiClient.Builder(this)
+        mApiClient = new Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
                 .addOnConnectionFailedListener(this) //this is refer to onConnectionFailedListener interface implementation.
@@ -177,18 +181,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         //Before request API request, GoogleApiClient must be in connected mode.
         Intent intent = new Intent(this,ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,1000,pendingIntent);
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,10000, pendingIntent);
+        //ActivityRecognitionClient activityRecognitionClient = ActivityRecognition.getClient(this);
+        //activityRecognitionClient.requestActivityUpdates(1000, pendingIntent);
     }
 
     /* Activity Recognition onConnectionSuspended */
     @Override
     public void onConnectionSuspended(int i) {
-
+        Log.i(TAG, "Connection suspended");
+        mApiClient.connect();
     }
 
     /* Activity Recognition onConnectionFailed */
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
+        Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
+
 }
