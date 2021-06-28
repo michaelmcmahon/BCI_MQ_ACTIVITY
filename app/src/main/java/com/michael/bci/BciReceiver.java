@@ -20,7 +20,7 @@ import java.util.concurrent.TimeoutException;
 
 
 /* BciReceiver class groups methods for receiving data from the OpenBCI Board
-* The EEG data streams back from the Board to the App continuously (once started).*/
+ * The EEG data streams back from the Board to the App continuously (once started).*/
 public class BciReceiver {
 
     public final static String TAG = "BCI_RECEIVER";
@@ -50,7 +50,7 @@ public class BciReceiver {
                 //Create BCIReceiver Object Instance
                 BciReceiver BciReceiverMain = new BciReceiver();
 
-               byte[] readData = new byte[TRANSFER_SIZE];
+                byte[] readData = new byte[TRANSFER_SIZE];
 
                 while (bciService.receiverThreadRunning) {
 
@@ -118,7 +118,7 @@ public class BciReceiver {
     public void ReadQueue(byte[] readData, int bytesAvailable, BciService bciService) {
         /* Ensure bytes available are not greater than TRANSFER_SIZE */
         if (bytesAvailable > 0)
-            //Log.d(TAG, "bytesAvailable 2 " + bytesAvailable);
+        //Log.d(TAG, "bytesAvailable 2 " + bytesAvailable);
         {
             if (bytesAvailable > TRANSFER_SIZE) {
                 bytesAvailable = TRANSFER_SIZE;
@@ -184,33 +184,33 @@ public class BciReceiver {
                 Log.w(TAG, "Start Byte" + found_start_byte );
                 if (found_start_byte) {
                     for (int i = 0; i < readData.length - 1; i++) {
-                            if (readData.length -1 > i + 32 && readData[i + 33] == START_BYTE && readData[i + 32] == END_BYTE) {
-                                Log.w(TAG, "PROCESS_DATA 5:" + readData.length + "|" + i);
+                        if (readData.length -1 > i + 32 && readData[i + 33] == START_BYTE && readData[i + 32] == END_BYTE) {
+                            Log.w(TAG, "PROCESS_DATA 5:" + readData.length + "|" + i);
 
 
                             /*Encode a JSON object using LinkedHashMap so order of the entries is preserved
                             and moved JSON construction is in its own object */
-                                LinkedHashMap<String, Serializable> obj = BciReceiver.jsonBciConstructor(readData, i);
+                            LinkedHashMap<String, Serializable> obj = BciReceiver.jsonBciConstructor(readData, i);
 
 
-                                i = i + 32;
+                            i = i + 32;
 
-                                //Log.w(TAG, "PROCESS_DATA 7: " + SampleNumber + ", " + ch1 + ", " + ch2 + "," + ch3 + ", " + ch4 + "," + ch5 + "," + ch6 + "," + ch7 +"," + ch8);
-                                //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
+                            //Log.w(TAG, "PROCESS_DATA 7: " + SampleNumber + ", " + ch1 + ", " + ch2 + "," + ch3 + ", " + ch4 + "," + ch5 + "," + ch6 + "," + ch7 +"," + ch8);
+                            //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
 
-                                channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
-                                Log.w(TAG, "PROCESS_DATA_JSON: Loop" + JSONValue.toJSONString(obj) );
-                            } else {
-                                if (readData.length - 1 < TRANSFER_SIZE) {
-                                    if (readData.length -1 % readData_SIZE != 0) {
-                                        remainingBytes = Arrays.copyOfRange(readData, i, (readData.length - 1));
-                                        //Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
-                                        //Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
-                                    }
+                            channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
+                            Log.w(TAG, "PROCESS_DATA_JSON: Loop" + JSONValue.toJSONString(obj) );
+                        } else {
+                            if (readData.length - 1 < TRANSFER_SIZE) {
+                                if (readData.length -1 % readData_SIZE != 0) {
+                                    remainingBytes = Arrays.copyOfRange(readData, i, (readData.length - 1));
+                                    //Log.w(TAG, "PROCESS_DATA 9: " + Arrays.toString(remainingBytes));
+                                    //Log.w(TAG, "PROCESS_DATA 10: " + Arrays.toString(remainingBytes));
                                 }
                             }
                         }
                     }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
                 // If we hit any issues, close the RabbitMQ channel, so that it is re-created on the next read.
@@ -238,44 +238,42 @@ public class BciReceiver {
         long unixTime = System.currentTimeMillis() / 1000L;
 
         /* Check header file */
-        obj.put("Header", readData[i]); //readData[i + 2] & 0xFF
-
-        Integer SampleNumber = readData[i + 1] & 0xFF;
-        Log.w(TAG, "PROCESS_DATA 6:" + SampleNumber );
-        obj.put("SN", SampleNumber); //readData[i + 2] & 0xFF
-         //Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
+        obj.put("Byte1", readData[i] & 0xFF); //Byte 1
+        obj.put("Header", readData[i + 1] & 0xFF); //Header
+        obj.put("SN", readData[i + 2] & 0xFF); //SampleNumber
+        //Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
         //float ch1 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 2, i + 5));
-        obj.put("ch1", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 2, i + 5)));
+        obj.put("ch1", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 3, i + 6)));
         //Bytes 6-8: Data value for EEG channel 2 and convert Byte To MicroVolts
         //float ch2 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 5, i + 8));
-        obj.put("ch2", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 5, i + 8)));
+        obj.put("ch2", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 6, i + 9)));
         //Bytes 9-11: Data value for EEG channel 3 and convert Byte To MicroVolts
         //float ch3 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 8, i + 11));
-        obj.put("ch3", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 8, i + 11)));
+        obj.put("ch3", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 9, i + 12)));
         //Bytes 12-14: Data value for EEG channel 4 and convert Byte To MicroVolts
         //float ch4 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 11, i + 14));
-        obj.put("ch4", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 11, i + 14)));
+        obj.put("ch4", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 12, i + 15)));
         //Bytes 15-17: Data value for EEG channel 5 and convert Byte To MicroVolts
         //float ch5 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 14, i + 17));
-        obj.put("ch5", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 14, i + 17)));
+        obj.put("ch5", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 15, i + 18)));
         //Bytes 18-20: Data value for EEG channel 6 and convert Byte To MicroVolts
         //float ch6 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 17, i + 20));
-        obj.put("ch6", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 17, i + 20)));
+        obj.put("ch6", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 18, i + 21)));
         //Bytes 21-23: Data value for EEG channel 7 and convert Byte To MicroVolts
         //float ch7 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 20, i + 23));
-        obj.put("ch7", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 20, i + 23)));
+        obj.put("ch7", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 21, i + 24)));
         //Bytes 24-26: Data value for EEG channel 8 and convert Byte To MicroVolts
         //float ch8 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26));
-        obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26)));
+        obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 24, i + 27)));
         //Bytes 27-28: Data value for accelerometer channel X AY1-AY0
         //float accelX = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 26, i + 28));
-        obj.put("accelX", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 26, i + 28)));
+        obj.put("accelX", 0.0);
         //Bytes 29-30: Data value for accelerometer channel Y AY1-AY0
         //float accelY = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 28, i + 30));
-        obj.put("accelY", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 28, i + 30)));
+        obj.put("accelY", 0.0);
         //Bytes 31-32: Data value for accelerometer channel Z AZ1-AZ0
         //float accelZ = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 30, i + 32));
-        obj.put("accelZ", OpenBci.convertAccelData(Arrays.copyOfRange(readData, i + 30, i + 32)));
+        obj.put("accelZ", 0.0);
         /* Confirm footer */
         /*Start fields needed for OpenBCI GUI - just using 0.0*/
         obj.put("other1", 0.0);
@@ -291,7 +289,7 @@ public class BciReceiver {
         obj.put("UnixTS", unixTime); // Create a Unix Timestamp
         /*End fields needed for OpenBCI GUI - just using 0.0*/
         obj.put("TS", dateString); // Create a Formatted Timestamp
-        obj.put("Footer", readData[i + 32]); // Create a Timestamp
+        obj.put("Footer", readData[i + 32] & 0xFF); // Create a Timestamp
         return obj;
     }
 }
