@@ -239,32 +239,32 @@ public class BciReceiver {
 
         /* Check header file */
         obj.put("Byte1", readData[i] & 0xFF); //Byte 1
-        obj.put("Header", readData[i + 1] & 0xFF); //Header
-        obj.put("SN", readData[i + 2] & 0xFF); //SampleNumber
+        //obj.put("Header", readData[i + 1] & 0xFF); //Header
+        obj.put("SN", readData[i + 1] & 0xFF); //SampleNumber
         //Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
         //float ch1 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 2, i + 5));
-        obj.put("ch1", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 3, i + 6)));
+        obj.put("ch1", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 2, i + 5)));
         //Bytes 6-8: Data value for EEG channel 2 and convert Byte To MicroVolts
         //float ch2 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 5, i + 8));
-        obj.put("ch2", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 6, i + 9)));
+        obj.put("ch2", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 5, i + 8)));
         //Bytes 9-11: Data value for EEG channel 3 and convert Byte To MicroVolts
         //float ch3 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 8, i + 11));
-        obj.put("ch3", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 9, i + 12)));
+        obj.put("ch3", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 8, i + 11)));
         //Bytes 12-14: Data value for EEG channel 4 and convert Byte To MicroVolts
         //float ch4 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 11, i + 14));
-        obj.put("ch4", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 12, i + 15)));
+        obj.put("ch4", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 11, i + 14)));
         //Bytes 15-17: Data value for EEG channel 5 and convert Byte To MicroVolts
         //float ch5 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 14, i + 17));
-        obj.put("ch5", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 15, i + 18)));
+        obj.put("ch5", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 14, i + 17)));
         //Bytes 18-20: Data value for EEG channel 6 and convert Byte To MicroVolts
         //float ch6 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 17, i + 20));
-        obj.put("ch6", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 18, i + 21)));
+        obj.put("ch6", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 17, i + 20)));
         //Bytes 21-23: Data value for EEG channel 7 and convert Byte To MicroVolts
         //float ch7 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 20, i + 23));
-        obj.put("ch7", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 21, i + 24)));
+        obj.put("ch7", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 20, i + 23)));
         //Bytes 24-26: Data value for EEG channel 8 and convert Byte To MicroVolts
         //float ch8 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26));
-        obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 24, i + 27)));
+        obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26)));
         //Bytes 27-28: Data value for accelerometer channel X AY1-AY0
         //float accelX = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 26, i + 28));
         obj.put("accelX", 0.0);
