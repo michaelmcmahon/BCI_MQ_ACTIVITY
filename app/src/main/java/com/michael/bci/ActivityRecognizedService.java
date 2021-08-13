@@ -148,7 +148,7 @@ public class ActivityRecognizedService extends IntentService {
 
                 /* For now lets just close connection every time */
                 //RabbitmqConnection.CloseConnection();
-                CloseChannel();
+                //CloseChannel();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -162,6 +162,31 @@ public class ActivityRecognizedService extends IntentService {
         }
     }
 
+    /* Create RabbitMQ Connection to the Broker */
+    private Connection getConnection() throws IOException, TimeoutException {
+        // Only create the connection if it doesn't already exist
+        if (connection == null)
+        {
+            try
+            {
+                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
+                connection =  factory.newConnection();
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (connection != null)
+                {
+                    connection.close();
+                    connection = null;
+                }
+                throw e;
+            }
+        }
+        return connection;
+    }
+
+
     /* Create RabbitMQ Channel on Broker */
     private Channel getChannel() throws IOException, TimeoutException {
         // Only create the channel if it doesn't already exist
@@ -169,7 +194,8 @@ public class ActivityRecognizedService extends IntentService {
         {
             try
             {
-                channel_2 = RabbitmqConnection.getConnection().createChannel();
+                //channel_2 = RabbitmqConnection.getConnection().createChannel();
+                channel_2 = getConnection().createChannel();
                 channel_2.queueDeclare("activity", false, false, false, null);
             }
             catch(Exception e)

@@ -17,7 +17,7 @@ public class RabbitmqConnection {
     public static ConnectionFactory getConnectionFactory() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("IP Address"); //IP of the RabbitMQ Message Broker
-        factory.setUsername("user name"); //RabbitMQ Username
+        factory.setUsername("Username"); //RabbitMQ Username
         factory.setPassword("Password"); //RabbitMQ Password
         factory.setVirtualHost("/"); //RabbitMQ Virtual Host
         factory.setPort(5672); //RabbitMQ Message Broker Port
@@ -26,6 +26,7 @@ public class RabbitmqConnection {
     }
 
     /* Create RabbitMQ Connection to the Broker */
+    /*
     public static Connection getConnection() throws IOException, TimeoutException {
         // Only create the connection if it doesn't already exist
         if (connection == null)
@@ -60,5 +61,5 @@ public class RabbitmqConnection {
             Log.d(TAG, "RMQ: Close Connection for EEG");
         }
     }
-
+     */
 }

@@ -77,6 +77,30 @@ public class BciReceiver {
         }.start();
     }
 
+    /* Create RabbitMQ Connection to the Broker */
+    private Connection getConnection() throws IOException, TimeoutException {
+        // Only create the connection if it doesn't already exist
+        if (connection == null)
+        {
+            try
+            {
+                ConnectionFactory factory = RabbitmqConnection.getConnectionFactory();
+                connection =  factory.newConnection();
+            }
+            catch(Exception e)
+            {
+                // Clean up
+                if (connection != null)
+                {
+                    connection.close();
+                    connection = null;
+                }
+                throw e;
+            }
+        }
+        return connection;
+    }
+
     /* Create RabbitMQ Channel on Broker */
     private Channel getChannel() throws IOException, TimeoutException {
         // Only create the channel if it doesn't already exist
@@ -84,7 +108,8 @@ public class BciReceiver {
         {
             try
             {
-                channel_1 = RabbitmqConnection.getConnection().createChannel();
+                //channel_1 = RabbitmqConnection.getConnection().createChannel();
+                channel_1 = getConnection().createChannel();
                 channel_1.queueDeclare("bci_data", false, false, false, null);
             }
             catch(Exception e)
@@ -110,6 +135,12 @@ public class BciReceiver {
             channel_1.close();
             channel_1 = null;
             Log.d(TAG, "RMQ: Close Channel 1 for EEG");
+        }
+
+        if (connection != null)
+        {
+            connection.close();
+            connection = null;
         }
     }
 

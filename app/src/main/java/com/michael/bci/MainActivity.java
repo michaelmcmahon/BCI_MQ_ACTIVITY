@@ -1,10 +1,12 @@
 package com.michael.bci;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
@@ -13,9 +15,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -81,10 +86,10 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                 /* x (CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET) X
                 x1065110Xx2065110Xx3065110Xx4065110Xx5065110Xx6065110Xx7065110Xx8065110X
                 Set A for write to SD Card*/
-                cmd = "x1060110Xx2060110Xx3060110Xx4100000Xx5100000Xx6100000Xx7100000Xx8100000X";
+                cmd = "-";
             } else {
                 /* Send 'd' to set all channels to default */
-                cmd = "x1060110Xx2060110Xx3060110Xx4100000Xx5100000Xx6100000Xx7100000Xx8100000X";
+                cmd = "d";
             }
             Log.e(TAG, "Send Command - " + cmd);
             Intent intent = new Intent(BciService.SEND_COMMAND);
@@ -111,6 +116,18 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                 intent.putExtra(BciService.COMMAND_EXTRA, "b");
                 Log.e(TAG, "Send Command - b");
                 sendBroadcast(intent);
+
+                if (ContextCompat.checkSelfPermission(
+                        this, Manifest.permission.ACTIVITY_RECOGNITION) ==
+                        PackageManager.PERMISSION_GRANTED) {
+                    // You can use the API that requires the permission.
+                    mApiClient.connect();
+                } else {
+                    // You can directly ask for the permission.
+                    // The registered ActivityResultCallback gets the result of this request.
+                    requestPermissionLauncher.launch(
+                            Manifest.permission.ACTIVITY_RECOGNITION);
+                }
             } else {
                 /* To end data streaming, transmit a single ASCII s */
                 toggleStreamingButton.setText("start streaming");
@@ -133,13 +150,15 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
         and associating our listeners with the GoogleApiClient instance.
          */
+
         mApiClient = new Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
                 .addOnConnectionFailedListener(this) //this is refer to onConnectionFailedListener interface implementation.
                 .build();
 
-        mApiClient.connect();
+        //mApiClient.connect();
+
     }
 
     /* Launch the OpenBCI Service */
@@ -169,6 +188,24 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
             startService(intent); //Start the BciService
         }
     }
+
+    // Register the permissions callback, which handles the user's response to the
+// system permissions dialog. Save the return value, an instance of
+// ActivityResultLauncher, as an instance variable.
+    private ActivityResultLauncher<String> requestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                    mApiClient.connect();
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            });
 
     /*
     Once the GoogleApiClient instance has connected on onCreate above, this onConnected() is called and
