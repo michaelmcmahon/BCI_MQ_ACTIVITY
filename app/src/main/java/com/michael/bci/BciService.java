@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
+import static com.michael.bci.RabbitmqConnection.CloseConnection;
+
 //import static com.michael.bci.RabbitmqConnection.CloseConnection;
 
 /*
@@ -224,6 +226,11 @@ public class BciService extends Service {
                 Log.i(TAG, "USB device has been removed from Android Phone");
                 // call your method that cleans up and closes communication with the accessory
                 stopForeground(true);
+                try {
+                    CloseConnection();
+                } catch (IOException | TimeoutException e) {
+                    e.printStackTrace();
+                }
             }
 
             if  (Objects.equals(intent.getAction(), SEND_COMMAND)){
@@ -282,14 +289,12 @@ public class BciService extends Service {
             }
             ftDevice = null;
         }
-    /*
         try {
             CloseConnection();
             Log.d(TAG, "RMQ: Close Connection onDestroy");
         } catch (IOException | TimeoutException e) {
             e.printStackTrace();
         }
-     */
         unregisterReceiver(mReceiver);
         stopForeground(true);
         Toast.makeText(this, "BCI Service Stopped.", Toast.LENGTH_SHORT).show();
