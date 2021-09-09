@@ -35,6 +35,8 @@ https://code.tutsplus.com/tutorials/how-to-recognize-user-activity-with-activity
 public class ActivityRecognizedService extends IntentService {
     private Connection connection;
     private Channel channel_2;
+    private static final String EXCHANGE_NAME = "exchange_1"; //RabbitMQ Exchange Name
+    private static final String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
     public final static String TAG = "ActivityRec";
 
 
@@ -85,9 +87,6 @@ public class ActivityRecognizedService extends IntentService {
             long unixTime = System.currentTimeMillis() / 1000L; //Unix Timestamp
 
             for (DetectedActivity activity : probableActivities) {
-                /* Placed RabbitMQ connection, channel, queue into their own Methods */
-                String QUEUE_NAME = "activity"; //RabbitMQ Queue Name
-                //Connection connection = getConnection();
                 Channel channel = getChannel();
                 Log.d(TAG, "RMQ: Connection/Channel 2 for EEG" +channel);
 
@@ -144,7 +143,7 @@ public class ActivityRecognizedService extends IntentService {
                 obj.put("UnixTS", unixTime); // Create a Unix Timestamp
                 obj.put("TS", dateString); // Create a Formatted Timestamp
 
-                channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
+                channel.basicPublish(EXCHANGE_NAME, "white",null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
 
                 /* For now lets just close connection every time */
                 //RabbitmqConnection.CloseConnection();
@@ -196,7 +195,9 @@ public class ActivityRecognizedService extends IntentService {
             {
                 //channel_2 = RabbitmqConnection.getConnection().createChannel();
                 channel_2 = getConnection().createChannel();
-                channel_2.queueDeclare("activity", false, false, false, null);
+                channel_2.exchangeDeclare(EXCHANGE_NAME, "direct", true);
+                channel_2.queueDeclare(QUEUE_NAME, false, false, false, null);
+                channel_2.queueBind(QUEUE_NAME, EXCHANGE_NAME, "white");
             }
             catch(Exception e)
             {
@@ -220,14 +221,14 @@ public class ActivityRecognizedService extends IntentService {
         {
             channel_2.close();
             channel_2 = null;
-            Log.d(TAG, "RMQ: Close Channel 2 for Activity" + channel_2);
+            Log.d(TAG, "RMQ: Close Channel 2 for Activity");
         }
 
         if (connection != null)
         {
             connection.close();
             connection = null;
-            Log.d(TAG, "RMQ: Close Connection for Activity" + connection);
+            Log.d(TAG, "RMQ: Close Connection for Activity");
         }
     }
 }
