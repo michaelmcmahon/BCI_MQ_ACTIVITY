@@ -38,8 +38,8 @@ class OpenBci {
     private static int interpret24bitAsInt32(byte[] byteArray) {
         int newInt = (
                 ((0xFF & byteArray[0]) << 16) |
-                        ((0xFF & byteArray[1]) << 8) |
-                        (0xFF & byteArray[2])
+                ((0xFF & byteArray[1]) << 8) |
+                 (0xFF & byteArray[2])
         );
         if ((newInt & 0x00800000) > 0) {
             newInt |= 0xFF000000;
@@ -72,7 +72,7 @@ class OpenBci {
         return scale_fac_uVolts_per_count * interpret24bitAsInt32(byteArray);
     }
 
-    /* Apply the scale factor to the EEG "counts" */
+    /* Apply the scale factor to Accelerometer */
     public static float convertAccelData(byte[] byteArray){
         return scale_fac_accel_G_per_count * interpret16bitAsInt32(byteArray);
     }
