@@ -38,6 +38,8 @@ public class BciReceiver {
     private final Object lockObj = new Object();
     private Connection connection;
     private Channel channel_1;
+    private static final String EXCHANGE_NAME = "exchange_1"; //RabbitMQ Exchange Name
+    private static final String QUEUE_NAME = "bci_data"; //RabbitMQ Queue Name
 
     /* Method to create thread which will receive and process data from the OpenBCI Cyton Board */
     void startReceiverThread(BciService bciService) {
@@ -53,12 +55,6 @@ public class BciReceiver {
                 byte[] readData = new byte[TRANSFER_SIZE];
 
                 while (bciService.receiverThreadRunning) {
-
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        // Say something?
-                    }
 
                     synchronized (lockObj) {
                         /* Retrieves the number of bytes available to read from the FT_Device driver Rx buffer */
@@ -110,7 +106,9 @@ public class BciReceiver {
             {
                 //channel_1 = RabbitmqConnection.getConnection().createChannel();
                 channel_1 = getConnection().createChannel();
-                channel_1.queueDeclare("bci_data", false, false, false, null);
+                channel_1.exchangeDeclare(EXCHANGE_NAME, "direct", true);
+                channel_1.queueDeclare(QUEUE_NAME, false, false, false, null);
+                channel_1.queueBind(QUEUE_NAME, EXCHANGE_NAME, "black");
             }
             catch(Exception e)
             {
@@ -177,10 +175,6 @@ public class BciReceiver {
             try {
                 Log.w(TAG, "PROCESS_DATA 1e - Broadcast Intent:" + Arrays.toString(readData));
 
-                /* Placed RabbitMQ connection, channel, queue into their own Methods */
-                String QUEUE_NAME = "bci_data"; //RabbitMQ Queue Name
-
-                //Connection connection = getConnection();
                 Channel channel = getChannel();
                 Log.d(TAG, "RMQ: Connection/Channel 1 for EEG" +channel);
 
@@ -229,8 +223,10 @@ public class BciReceiver {
                             //Log.w(TAG, "PROCESS_DATA 7: " + SampleNumber + ", " + ch1 + ", " + ch2 + "," + ch3 + ", " + ch4 + "," + ch5 + "," + ch6 + "," + ch7 +"," + ch8);
                             //Log.w(TAG, "PROCESS_DATA 8 - DATA: Loop" + i );
 
-                            channel.basicPublish("", QUEUE_NAME, null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
+                            channel.basicPublish(EXCHANGE_NAME, "black", null, JSONValue.toJSONString(obj).getBytes(StandardCharsets.UTF_8));
                             Log.w(TAG, "PROCESS_DATA_JSON: Loop" + JSONValue.toJSONString(obj) );
+                            Log.d(TAG, "USB: Bytes available to read from the Rx driver buffer: " + bciService.ftDevice.getQueueStatus()); //Retrieves the number of bytes available to read from the Rx driver buffer.
+                            Log.d(TAG, "USB: buffer is full -> Rx pending until read: " + bciService.ftDevice.readBufferFull());
                         } else {
                             if (readData.length - 1 < TRANSFER_SIZE) {
                                 if (readData.length -1 % readData_SIZE != 0) {
@@ -269,8 +265,7 @@ public class BciReceiver {
         long unixTime = System.currentTimeMillis() / 1000L;
 
         /* Check header file */
-        obj.put("Byte1", readData[i] & 0xFF); //Byte 1
-        //obj.put("Header", readData[i + 1] & 0xFF); //Header
+        //obj.put("Byte1", readData[i] & 0xFF); //Header
         obj.put("SN", readData[i + 1] & 0xFF); //SampleNumber
         //Bytes 3-5: Data value for EEG channel 1 and convert Byte To MicroVolts
         //float ch1 = OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 2, i + 5));
@@ -298,29 +293,29 @@ public class BciReceiver {
         obj.put("ch8", OpenBci.convertByteToMicroVolts(Arrays.copyOfRange(readData, i + 23, i + 26)));
         //Bytes 27-28: Data value for accelerometer channel X AY1-AY0
         //float accelX = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 26, i + 28));
-        obj.put("accelX", 0.0);
+        //obj.put("accelX", 0.0);
         //Bytes 29-30: Data value for accelerometer channel Y AY1-AY0
         //float accelY = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 28, i + 30));
-        obj.put("accelY", 0.0);
+       // obj.put("accelY", 0.0);
         //Bytes 31-32: Data value for accelerometer channel Z AZ1-AZ0
         //float accelZ = OpenBci.interpret16bitAsInt32(Arrays.copyOfRange(readData, i + 30, i + 32));
-        obj.put("accelZ", 0.0);
+       // obj.put("accelZ", 0.0);
         /* Confirm footer */
         /*Start fields needed for OpenBCI GUI - just using 0.0*/
-        obj.put("other1", 0.0);
-        obj.put("other2", 0.0);
-        obj.put("other3", 0.0);
-        obj.put("other4", 0.0);
-        obj.put("other5", 0.0);
-        obj.put("other6", 0.0);
-        obj.put("other7", 0.0);
-        obj.put("analog1", 0.0);
-        obj.put("analog2", 0.0);
-        obj.put("analog3", 0.0);
+        //obj.put("other1", 0.0);
+        //obj.put("other2", 0.0);
+        //obj.put("other3", 0.0);
+        //obj.put("other4", 0.0);
+        //obj.put("other5", 0.0);
+        //obj.put("other6", 0.0);
+        //obj.put("other7", 0.0);
+        //obj.put("analog1", 0.0);
+        //obj.put("analog2", 0.0);
+       // obj.put("analog3", 0.0);
         obj.put("UnixTS", unixTime); // Create a Unix Timestamp
         /*End fields needed for OpenBCI GUI - just using 0.0*/
         obj.put("TS", dateString); // Create a Formatted Timestamp
-        obj.put("Footer", readData[i + 32] & 0xFF); // Create a Timestamp
+        //obj.put("Footer", readData[i + 32] & 0xFF); // Create a Timestamp
         return obj;
     }
 }
