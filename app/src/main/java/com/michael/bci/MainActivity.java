@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -28,10 +29,13 @@ import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityRecognitionClient;
 import com.google.android.gms.tasks.Task;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
+import static android.os.Build.VERSION_CODES.Q;
 import static com.google.android.gms.common.api.GoogleApiClient.*;
 
 /*
@@ -106,38 +110,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         });
 
         /* Toggle Streaming Button to start/stop streaming EEG data */
-        toggleStreamingButton.setOnClickListener((View v) -> {
-            if (!streaming) {
-                /* To begin data streaming, transmit a single ASCII b */
-                toggleStreamingButton.setText("stop streaming");
-                streaming = true;
-                // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
-                Intent intent = new Intent(BciService.SEND_COMMAND);
-                intent.putExtra(BciService.COMMAND_EXTRA, "b");
-                Log.e(TAG, "Send Command - b");
-                sendBroadcast(intent);
-
-                if (ContextCompat.checkSelfPermission(
-                        this, Manifest.permission.ACTIVITY_RECOGNITION) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    // You can use the API that requires the permission.
-                    mApiClient.connect();
-                } else {
-                    // You can directly ask for the permission.
-                    // The registered ActivityResultCallback gets the result of this request.
-                    requestPermissionLauncher.launch(
-                            Manifest.permission.ACTIVITY_RECOGNITION);
-                }
-            } else {
-                /* To end data streaming, transmit a single ASCII s */
-                toggleStreamingButton.setText("start streaming");
-                streaming = false;
-                Intent intent = new Intent(BciService.SEND_COMMAND);
-                intent.putExtra(BciService.COMMAND_EXTRA, "s");
-                Log.e(TAG, "Send Command - s");
-                sendBroadcast(intent);
-            }
-        });
+        toggleStreamingButton.setOnClickListener(this::onClick);
 
         IntentFilter filter = new IntentFilter(); //set an IntentFilter to register our BroadcastReceiver.
         filter.addAction(BciService.DATA_RECEIVED_INTENT); //custom action intent targeting mBroadCastReceiver
@@ -150,14 +123,11 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         we initialize the client and connect to Google Play Services by requesting the ActivityRecognition.API
         and associating our listeners with the GoogleApiClient instance.
          */
-
         mApiClient = new Builder(this)
                 .addApi(ActivityRecognition.API)
                 .addConnectionCallbacks(this) //this is refer to connectionCallbacks interface implementation.
                 .addOnConnectionFailedListener(this) //this is refer to onConnectionFailedListener interface implementation.
                 .build();
-
-        //mApiClient.connect();
 
     }
 
@@ -189,21 +159,18 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         }
     }
 
-    // Register the permissions callback, which handles the user's response to the
-// system permissions dialog. Save the return value, an instance of
-// ActivityResultLauncher, as an instance variable.
+    /*
+    Register the permissions callback, which handles the user's response to the
+    system permissions dialog. Save the return value, an instance of
+     ActivityResultLauncher, as an instance variable.
+     */
     private ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
+                    /* Permission is granted. Continue the action or workflow in your app */
                     mApiClient.connect();
                 } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
+                    /* Explain features requires a permission that the user has denied */
                 }
             });
 
@@ -215,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
      */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        //Before request API request, GoogleApiClient must be in connected mode.
+        /* Before request API request, GoogleApiClient must be in connected mode */
         Intent intent = new Intent(this,ActivityRecognizedService.class);
         PendingIntent pendingIntent = PendingIntent.getService(this,1,intent,PendingIntent.FLAG_UPDATE_CURRENT);
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient,10000, pendingIntent);
@@ -236,4 +203,45 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + connectionResult.getErrorCode());
     }
 
+    private void onClick(View v) {
+        if (!streaming) {
+            /* To begin data streaming, transmit a single ASCII b */
+            toggleStreamingButton.setText("stop streaming");
+            streaming = true;
+            // Intent intent = new Intent(String.valueOf(new BciService.mReceiver()));
+            Intent intent = new Intent(BciService.SEND_COMMAND);
+            intent.putExtra(BciService.COMMAND_EXTRA, "b");
+            Log.e(TAG, "Send Command - b");
+            sendBroadcast(intent);
+
+            /* checking for Activity Recognition permission, and requesting permission from
+            the user when necessary */
+            if (ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.ACTIVITY_RECOGNITION) ==
+                    PackageManager.PERMISSION_GRANTED) {
+                /* Activity Recognition API that requires the permission */
+                mApiClient.connect();
+            } else {
+                /* Directly ask for the Activity Recognition permission.
+                   The registered ActivityResultCallback gets the result of this request */
+                if (Build.VERSION.SDK_INT >= Q) {
+                    requestPermissionLauncher.launch(
+                            Manifest.permission.ACTIVITY_RECOGNITION);
+                }
+            }
+        } else {
+            /* To end data streaming, transmit a single ASCII s */
+            toggleStreamingButton.setText("start streaming");
+            streaming = false;
+            Intent intent = new Intent(BciService.SEND_COMMAND);
+            intent.putExtra(BciService.COMMAND_EXTRA, "s");
+            Log.e(TAG, "Send Command - s");
+            sendBroadcast(intent);
+            try {
+                RabbitmqConnection.CloseConnection();
+            } catch (IOException | TimeoutException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
