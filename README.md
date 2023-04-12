@@ -1,13 +1,13 @@
 # BCI_MQ_ACTIVITY_v1.0.0
 [![DOI](https://zenodo.org/badge/290618343.svg)](https://zenodo.org/badge/latestdoi/290618343)
 
-A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition.  
+An Mobile Prototype for the generation of activity labelled motor cortex EEG datasets during unconstrained movement in Natural Settings based on the OpenBCI Cortxa board.  
 
 Android 
 - The minSdkVersion for this App is set to level 26 (Android Version 8.0.0 - Oreo) and the targetSdkVersion level 29. 
 
 IDE
-- I used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
+- We used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
 
 The main files are
 - AndroidManifest.xml (Configs)
