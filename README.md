@@ -29,15 +29,9 @@ RabbitMQ_Receiver_JSON Folder
 - You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
 
 HowTo
-- HowTo Step-by-Step doc - very much in progress at the moment.
+- HowTo Step-by-Step doc. 
 
-Main ToDo
-- Activity Recognition needs some refinement
-- FTDI Buffer RX/TX working but needs more analysis to run much more efficiently  
-
-
-
-# How to set up & run BCI MQ Activity Android App v1.0.0
+# How to set up & run BCI MQ Activity Android App v1.0.2
 
 * [Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
@@ -310,7 +304,7 @@ Create the two RECEIVE clients -- one for EEG data and the second for
 ACTIVITY data - which will create QUEUE and wait for messages which It
 is expecting to receive as a JSON string. Two example files are bundled
 with the project in the RabbitMQ_Receiver_JSON folder. You will need to
-add some configuration information specific to you setup.
+add some configuration information specific to your own setup.
 ```
 //We need to import some classes
 import org.json.simple.JSONObject;
@@ -389,7 +383,7 @@ Install Android Studio
 ======================
 
 Download Android Studio for here: <https://developer.android.com/studio>
-- I have used version 4.0.1 for development of this project but latest
+- We have used version 4.0.1 for development of this project but latest
 should work fine.
 
 Once downloaded open the IDE
