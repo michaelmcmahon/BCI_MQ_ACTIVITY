@@ -615,6 +615,12 @@ ACTIVITY DATA STREAM
 
 ![](HowToDoc/media/image35.jpg)
 
+EXAMPLE SETUP FOR EXPERIMENT
+
+![](HowToDoc/media/image36.jpg)
+
+(a) IDUN Dryode Electrodes (b) OpenBCI Dongle connected via the OTG cable and Mobile Ap-plication interface (c)The Electrode Cap Liner aligns and holds the electrodes on the scalp (c) The Electrode Beanie with a pocket for the OpenBCI board (e) Front view of the unobtrusive Electrode Beanie.
+
 License
 ==================
 
