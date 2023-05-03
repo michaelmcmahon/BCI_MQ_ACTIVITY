@@ -1,13 +1,13 @@
-# BCI_MQ_ACTIVITY_v1.0.0
+# BCI_MQ_ACTIVITY_v1.0.2
 [![DOI](https://zenodo.org/badge/290618343.svg)](https://zenodo.org/badge/latestdoi/290618343)
 
-A mobile BCI Android App for real-time study of continuous EEG brain signals and activity recognition.  
+An Mobile Prototype for the generation of activity labelled motor cortex EEG datasets during unconstrained movement in Natural Settings based on the OpenBCI Cortxa board.  
 
 Android 
 - The minSdkVersion for this App is set to level 26 (Android Version 8.0.0 - Oreo) and the targetSdkVersion level 29. 
 
 IDE
-- I used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
+- We used Android Studio 4.1 as IDE but IntelliJ should also work fine since one is based on the other
 
 The main files are
 - AndroidManifest.xml (Configs)
@@ -29,15 +29,9 @@ RabbitMQ_Receiver_JSON Folder
 - You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
 
 HowTo
-- HowTo Step-by-Step doc - very much in progress at the moment.
+- HowTo Step-by-Step doc. 
 
-Main ToDo
-- Activity Recognition needs some refinement
-- FTDI Buffer RX/TX working but needs more analysis to run much more efficiently  
-
-
-
-# How to set up & run BCI MQ Activity Android App v1.0.0
+# How to set up & run BCI MQ Activity Android App v1.0.2
 
 * [Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
@@ -310,7 +304,7 @@ Create the two RECEIVE clients -- one for EEG data and the second for
 ACTIVITY data - which will create QUEUE and wait for messages which It
 is expecting to receive as a JSON string. Two example files are bundled
 with the project in the RabbitMQ_Receiver_JSON folder. You will need to
-add some configuration information specific to you setup.
+add some configuration information specific to your own setup.
 ```
 //We need to import some classes
 import org.json.simple.JSONObject;
@@ -389,7 +383,7 @@ Install Android Studio
 ======================
 
 Download Android Studio for here: <https://developer.android.com/studio>
-- I have used version 4.0.1 for development of this project but latest
+- We have used version 4.0.1 for development of this project but latest
 should work fine.
 
 Once downloaded open the IDE
@@ -614,6 +608,12 @@ EEG DATA STREAM
 ACTIVITY DATA STREAM
 
 ![](HowToDoc/media/image35.jpg)
+
+EXAMPLE SETUP FOR EXPERIMENT
+
+![](HowToDoc/media/image36.jpg)
+
+(a) IDUN Dryode Electrodes (b) OpenBCI Dongle connected via the OTG cable and Mobile Ap-plication interface (c)The Electrode Cap Liner aligns and holds the electrodes on the scalp (c) The Electrode Beanie with a pocket for the OpenBCI board (e) Front view of the unobtrusive Electrode Beanie.
 
 License
 ==================
