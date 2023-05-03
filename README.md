@@ -1,5 +1,5 @@
 # BCI_MQ_ACTIVITY_v1.0.3
-[![DOI](https://zenodo.org/badge/290618343.svg)](https://zenodo.org/badge/latestdoi/290618343)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7892262.svg)](https://doi.org/10.5281/zenodo.7892262)
 
 An Mobile Prototype for the generation of activity labelled motor cortex EEG datasets during unconstrained movement in Natural Settings based on the OpenBCI Cortxa board.  
 
