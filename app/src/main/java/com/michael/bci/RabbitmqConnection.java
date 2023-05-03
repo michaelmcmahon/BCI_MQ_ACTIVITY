@@ -16,9 +16,9 @@ public class RabbitmqConnection {
     /* Method for connection details to RabbitMQ Broker */
     public static ConnectionFactory getConnectionFactory() throws IOException, TimeoutException {
         ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost("IP Address"); //IP of the RabbitMQ Message Broker
-        factory.setUsername("Username"); //RabbitMQ Username
-        factory.setPassword("Password"); //RabbitMQ Password
+        factory.setHost("IP_Address"); //IP of the RabbitMQ Message Broker
+        factory.setUsername("username"); //RabbitMQ Username
+        factory.setPassword("password"); //RabbitMQ Password
         factory.setVirtualHost("/"); //RabbitMQ Virtual Host
         factory.setPort(5672); //RabbitMQ Message Broker Port
         Log.d(TAG, "RMQ: Returned RMQ Connection Details");
@@ -50,6 +50,7 @@ public class RabbitmqConnection {
         Log.d(TAG, "RMQ: Open Connection for EEG" +connection);
         return connection;
     }
+     */
 
     // Cleanup the channel and leave it in an uninitialized state
     public static void CloseConnection() throws IOException, TimeoutException {
@@ -61,5 +62,5 @@ public class RabbitmqConnection {
             Log.d(TAG, "RMQ: Close Connection for EEG");
         }
     }
-     */
+
 }
