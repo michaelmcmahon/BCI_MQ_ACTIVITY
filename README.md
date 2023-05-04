@@ -1,7 +1,9 @@
 # BCI_MQ_ACTIVITY_v1.0.3
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7892262.svg)](https://doi.org/10.5281/zenodo.7892262)
 
-An Mobile Prototype for the generation of activity labelled motor cortex EEG datasets during unconstrained movement in Natural Settings based on the OpenBCI Cortxa board.  
+An Mobile App for the generation of activity labelled motor cortex EEG datasets during unconstrained movement in Natural Settings based on the OpenBCI Cortxa board. The App connects wirelessly to an OpenBCI board, and the EEG data is linked through the app with the Activity API sensor data in the phone for time synchronised labelling, and then transmitted to a Rabbit MQ server in the cloud via 4G to generate consistent, activity labelled, EEG datasets in real-time that can be made available to any connected subscriber systems 
+
+Early-stage Researchers, and PhD students in particular, can be constrained by the expense of generating these labelled EEG datasets due to the cost of the research grade equipment, the extensive per subject application time required, and the complexity of capturing associated time synchronised labelling metadata. Our Android Mobile App, which utilizes the low cost OpenBCI board and the Android Activity API, for the generation of physical activity labelled EEG datasets, is designed to help address this issue for researchers who are focused on Motor Cortex investigations.
 
 Android 
 - The minSdkVersion for this App is set to level 26 (Android Version 8.0.0 - Oreo) and the targetSdkVersion level 29. 
@@ -28,10 +30,7 @@ Libs
 RabbitMQ_Receiver_JSON Folder
 - You will need to download this folder to your local system and build the receiver files with your RabbitMQ connection details - see commands.txt for details
 
-HowTo
-- HowTo Step-by-Step doc. 
-
-# How to set up & run BCI MQ Activity Android App v1.0.2
+# How to set up & run BCI MQ Activity Android App v1.0.3
 
 * [Setup RabbitMQ Broker on AWS](#setup-rabbitmq-broker-on-aws)
 
@@ -57,7 +56,11 @@ HowTo
 
 * [How to use the App](#how-to-use-the-app)
 
+* [Test the App](#test-the-app)
+
 * [License](#license)
+
+* [Contributing and Reporting Issues](#contributing-and-reporting-issues)
 
 * [Contact](#contact)
 
@@ -564,24 +567,6 @@ screen.
 
 ![](HowToDoc/media/image32.jpg)
 
-**TEST SIGNAL:** The Test Signal checkbox turns on all the available
-channels and connects them to an internal test signal. This feature is
-very useful for self-test and calibration. 
-
-x(CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET)X
-
-x1065110X
-x2065110X
-x3065110X
-x4065110X
-x5065110X
-x6065110X
-x7065110X
-x8065110X
-
-For normal usage with incoming OpenBCI EEG signals just leave this box
-unchecked
-
 **START/STOP:** The Start/Stop button just does what it says on the tin
 -- sends start and stop commands to the OpenBCI Board **NOTE:** when you
 hit stop you will continue to receive EEG signal data for a short amount
@@ -615,10 +600,39 @@ EXAMPLE SETUP FOR EXPERIMENT
 
 (a) IDUN Dryode Electrodes (b) OpenBCI Dongle connected via the OTG cable and Mobile Ap-plication interface (c)The Electrode Cap Liner aligns and holds the electrodes on the scalp (c) The Electrode Beanie with a pocket for the OpenBCI board (e) Front view of the unobtrusive Electrode Beanie.
 
+Test the App
+==================
+The Test Signal checkbox turns on all the available channels and connects them to an internal test signal. This feature is very useful for self-test and calibration when connected to the OpenBCI Cyton Board. 
+
+By default this is set to: '-' Connect to test signal 1xAmplitude, slow pulse. This setting can be changed in the checkbox code cmd found in MainActivity.java 
+```
+ 0 Connect to internal GND (VDD - VSS)
+ - Connect to test signal 1xAmplitude, slow pulse
+ = Connect to test signal 1xAmplitude, fast pulse
+ p Connect to DC signal
+ [ Connect to test signal 2xAmplitude, slow pulse
+ ] Connect to test signal 2xAmplitude, fast pulse
+```
+
+If you wish to test the app itself without connection to the OpenBCI Cyton board you can set the following dummy datastream to the checkbox code cmd found in MainActivity.java  
+
+```
+/* x (CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET) X */
+     
+     x1065110Xx2065110Xx3065110Xx4065110Xx5065110Xx6065110Xx7065110Xx8065110X
+```
+
+For normal usage with incoming OpenBCI EEG signals just leave the Test Signal box unchecked
+
 License
 ==================
 
 Distributed under the MIT License. See 'LICENSE' for more information.
+
+Contributing and Reporting Issues 
+==================
+
+We thank you for using our project and we'd love to hear from you so please do reach out if you have any suggestions for improvement or if you have discovered a problem please do open an issue ticket. We are a very small team but we will do our best to work with you to address any suggestions. 
 
 Contact
 ==================
