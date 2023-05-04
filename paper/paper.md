@@ -43,7 +43,7 @@ Although our reference implementation of the system is configured to focus on Mo
 ![Flowchart of the OpenBCI Android Application.\label{fig:3}](image3.png)
 
 # Related Projects
-Since we started development on the Android App, OpenBCI itself has moved to assist in integrating its hardware with projects in multiple programming languages through the introduction of Brainflow which provides a uniform data acquisition API however the Cyton OpenBCI board is still not a supported board on Android due the use of the Nordic Gazelle stack and library for the RFduino radio link between board and dongle (@brainflow).
+Since we started development on the Android App, OpenBCI itself has moved to assist in integrating its hardware with projects in multiple programming languages through the introduction of Brainflow Project which provides a uniform data acquisition API however the Cyton OpenBCI board is still not a supported on Android within this project as yet due the use of the Nordic Gazelle stack and library for the RFduino radio link between board and dongle (@brainflow) which was one of the main technical challenges we faced. The Brainflow Project does provide support for OpenBCI Cyton on Windows, Linux, MacOS and Devices like Raspberry Pi. 
 
 # Acknowledgements
 The authors declare that they have no competing financial, non-financial or institutional interests that could have appeared to influence the work reported in this paper.
