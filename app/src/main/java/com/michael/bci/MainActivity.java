@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements ConnectionCallbac
                 /* x (CHANNEL, POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET) X
                 x1065110Xx2065110Xx3065110Xx4065110Xx5065110Xx6065110Xx7065110Xx8065110X
                 Set A for write to SD Card*/
-                cmd = "0";
+                cmd = "-";
             } else {
                 /* Send 'd' to set all channels to default */
                 cmd = "d";
