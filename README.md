@@ -289,7 +289,7 @@ At this point, you should be able to browse to the RabbitMQ Management
 Console, by entering the cloud server IP address or DNS name directly
 into your browser's address bar along with Port: 15672. 
 
-http://0.0.0.0:15672
+e.g. http//123.45.67.89:15672
 
 You should now see your login page as shown below. You can use
 
