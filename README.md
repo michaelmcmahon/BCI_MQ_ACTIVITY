@@ -287,8 +287,11 @@ checking the bitnami_credentials file as detailed here:
 
 At this point, you should be able to browse to the RabbitMQ Management
 Console, by entering the cloud server IP address or DNS name directly
-into your browser's address bar. You should now see your login page as
-shown below. You can use
+into your browser's address bar along with Port: 15672. 
+
+http://0.0.0.0:15672
+
+You should now see your login page as shown below. You can use
 
 **admin:** admin as username
 
